@@ -1,0 +1,81 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
+}
+
+.demo {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  color: #101828;
+}
+
+.demo--dark {
+  color: #e2e8f0;
+}
+
+.demo__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.demo__header h1 {
+  margin: 0 0 4px;
+  font-size: 1.75rem;
+}
+
+.demo__header p {
+  margin: 0;
+  color: #667085;
+}
+
+.demo--dark .demo__header p {
+  color: #94a3b8;
+}
+
+.demo__theme {
+  border: 1px solid #e4e7ec;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.demo--dark .demo__theme {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.demo__editor {
+  margin-bottom: 28px;
+}
+
+.demo__preview h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.demo__preview pre {
+  margin: 0;
+  padding: 16px;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

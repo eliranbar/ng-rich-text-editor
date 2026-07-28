@@ -1,0 +1,162 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: var(--rte-surface, #fff);
+  color: var(--rte-text, #1a1a1a);
+}
+
+.ngx-rte__content {
+  flex: 1;
+  outline: none;
+  padding: var(--rte-content-padding, 14px 16px);
+  min-height: 160px;
+  line-height: 1.6;
+  font-size: var(--rte-font-size, 15px);
+  overflow: auto;
+  word-break: break-word;
+}
+
+.ngx-rte__content--hidden {
+  display: none;
+}
+
+.ngx-rte__content:empty::before,
+:host.ngx-rte--empty .ngx-rte__content::before {
+  content: attr(data-placeholder);
+  color: var(--rte-placeholder, #9aa0a6);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.ngx-rte__content[dir='rtl']:empty::before,
+:host.ngx-rte--empty .ngx-rte__content[dir='rtl']::before {
+  float: right;
+}
+
+.ngx-rte__content ::ng-deep {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  blockquote,
+  ul,
+  ol {
+    margin: 0 0 0.75em;
+  }
+
+  h1 {
+    font-size: 1.75em;
+  }
+  h2 {
+    font-size: 1.4em;
+  }
+  h3 {
+    font-size: 1.2em;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.5em;
+  }
+
+  [dir='rtl'] ul,
+  [dir='rtl'] ol,
+  ul[dir='rtl'],
+  ol[dir='rtl'] {
+    padding-left: 0;
+    padding-right: 1.5em;
+  }
+
+  [dir='rtl'] blockquote,
+  blockquote[dir='rtl'] {
+    border-left: 0;
+    border-right: 3px solid var(--rte-border, #d0d5dd);
+    padding-left: 0;
+    padding-right: 12px;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--rte-border, #d0d5dd);
+    padding-left: 12px;
+    color: var(--rte-muted, #667085);
+  }
+
+  a {
+    color: var(--rte-link, #2563eb);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  img[data-rte-uploading='true'] {
+    opacity: 0.55;
+    outline: 2px dashed var(--rte-accent, #2563eb);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 0.75em;
+  }
+
+  th,
+  td {
+    border: 1px solid var(--rte-border, #d0d5dd);
+    padding: 6px 8px;
+    min-width: 40px;
+  }
+}
+
+.ngx-rte__source {
+  flex: 1;
+  min-height: 160px;
+  border: 0;
+  outline: none;
+  resize: vertical;
+  padding: 14px 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  background: var(--rte-surface-muted, #f8fafc);
+  color: inherit;
+}
+
+.ngx-rte__footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--rte-muted, #667085);
+  border-top: 1px solid var(--rte-border, #e4e7ec);
+}
+
+:host.ngx-rte--disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+:host.ngx-rte--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  border-radius: 0 !important;
+}
+
+/* Inside a wrapper card the card itself goes fullscreen, so the editor only
+   needs to fill the remaining space below the toolbar. */
+:host.ngx-rte--fullscreen-wrapped {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}

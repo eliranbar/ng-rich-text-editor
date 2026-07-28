@@ -1,0 +1,47 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "paths": {
+      "ngx-richtext": ["./projects/ngx-richtext/src/public-api.ts"],
+      "ngx-richtext/tables": ["./projects/ngx-richtext/tables/src/public-api.ts"],
+      "ngx-richtext/source-view": ["./projects/ngx-richtext/source-view/src/public-api.ts"],
+      "ngx-richtext/word-count": ["./projects/ngx-richtext/word-count/src/public-api.ts"],
+      "ngx-richtext/fullscreen": ["./projects/ngx-richtext/fullscreen/src/public-api.ts"],
+      "ngx-richtext/image-resize": ["./projects/ngx-richtext/image-resize/src/public-api.ts"]
+    },
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/ngx-richtext/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/ngx-richtext/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/demo/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/demo/tsconfig.spec.json"
+    }
+  ]
+}

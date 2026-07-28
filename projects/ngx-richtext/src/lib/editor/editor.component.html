@@ -1,0 +1,36 @@
+<div
+  #editable
+  class="ngx-rte__content"
+  [class.ngx-rte__content--hidden]="sourceMode()"
+  [attr.contenteditable]="!disabled() && !sourceMode()"
+  [attr.data-placeholder]="placeholder()"
+  [attr.dir]="dir()"
+  [style.minHeight]="minHeight()"
+  [style.direction]="dir()"
+  role="textbox"
+  aria-multiline="true"
+  (input)="onInput()"
+  (focus)="onFocus()"
+  (blur)="onBlur()"
+  (paste)="onPaste($event)"
+  (drop)="onDrop($event)"
+  (dragover)="onDragOver($event)"
+  (keydown)="onKeyDown($event)"
+  (click)="onClick($event)"
+></div>
+
+@if (sourceMode()) {
+  <textarea
+    class="ngx-rte__source"
+    [value]="sourceHtml()"
+    (input)="onSourceInput($any($event.target).value)"
+    [attr.aria-label]="'HTML source'"
+  ></textarea>
+}
+
+@if (features?.isEnabled('wordCount')) {
+  <div class="ngx-rte__footer" aria-live="polite">
+    <span>{{ wordCount() }} words</span>
+    <span>{{ charCount() }} chars</span>
+  </div>
+}

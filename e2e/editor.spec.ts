@@ -1,0 +1,48 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('ngx-richtext demo', () => {
+  test('loads editor and formats bold text', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'ngx-richtext' })).toBeVisible();
+
+    const editor = page.locator('.ngx-rte__content');
+    await expect(editor).toBeVisible();
+
+    await editor.click();
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('Hello bold world');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.getByRole('button', { name: 'Bold' }).click();
+
+    await expect(page.locator('.demo__preview pre')).toContainText('<strong>');
+  });
+
+  test('creates a bullet list from the toolbar', async ({ page }) => {
+    await page.goto('/');
+    const editor = page.locator('.ngx-rte__content');
+    await editor.click();
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('Item one');
+    await page.getByRole('button', { name: 'Bullet list' }).click();
+    await expect(page.locator('.demo__preview pre')).toContainText('<ul>');
+  });
+
+  test('shows premium color controls when licensed', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('button', { name: 'Text color' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Insert table' })).toBeVisible();
+  });
+
+  test('can switch block to RTL for Hebrew', async ({ page }) => {
+    await page.goto('/');
+    const editor = page.locator('.ngx-rte__content');
+    await editor.click();
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('שלום עולם');
+    await page.getByRole('button', { name: 'Right to left' }).click();
+    await expect(page.locator('.demo__preview pre')).toContainText('dir="rtl"');
+  });
+});

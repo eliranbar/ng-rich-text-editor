@@ -1,0 +1,29 @@
+<main class="demo" [class.demo--dark]="dark()">
+  <header class="demo__header">
+    <div>
+      <h1>ngx-richtext</h1>
+      <p>Professional Angular rich text editor · free + premium tiers</p>
+    </div>
+    <button type="button" class="demo__theme" (click)="dark.set(!dark())">
+      {{ dark() ? 'Light mode' : 'Dark mode' }}
+    </button>
+  </header>
+
+  <section class="demo__editor">
+    <ngx-rte-wrapper [theme]="dark() ? 'dark' : 'light'">
+      <ngx-rte-toolbar [editor]="editor" />
+      <ngx-rte
+        #editor
+        [(ngModel)]="html"
+        placeholder="Type freely…"
+        minHeight="280px"
+        (imageUploadError)="onImageError($event)"
+      />
+    </ngx-rte-wrapper>
+  </section>
+
+  <section class="demo__preview">
+    <h2>HTML output</h2>
+    <pre>{{ html }}</pre>
+  </section>
+</main>

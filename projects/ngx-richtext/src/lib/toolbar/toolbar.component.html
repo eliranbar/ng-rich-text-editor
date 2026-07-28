@@ -1,0 +1,510 @@
+<div
+  class="ngx-rte-toolbar__inner"
+  (keydown)="onToolbarKeydown($event)"
+  (mousedown)="onControlMouseDown($event)"
+>
+  @for (item of toolbarItems(); track $index) {
+    @if (item === '|') {
+      <span class="ngx-rte-toolbar__sep" aria-hidden="true"></span>
+    } @else if (visible(item)) {
+      @switch (item) {
+        @case ('undo') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Undo the last change (Ctrl+Z)"
+            aria-label="Undo"
+            (click)="undo()"
+          >
+            ↶
+          </button>
+        }
+        @case ('redo') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Redo the last undone change (Ctrl+Y)"
+            aria-label="Redo"
+            (click)="redo()"
+          >
+            ↷
+          </button>
+        }
+        @case ('heading') {
+          <select
+            class="ngx-rte-toolbar__select"
+            data-tooltip="Change paragraph style (heading, quote, or body text)"
+            aria-label="Paragraph style"
+            [ngModel]="state().blockType"
+            (ngModelChange)="setHeading($event)"
+          >
+            <option value="p">Paragraph</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="blockquote">Quote</option>
+          </select>
+        }
+        @case ('bold') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Bold — emphasize selected text (Ctrl+B)"
+            aria-label="Bold"
+            [class.is-active]="state().bold"
+            [attr.aria-pressed]="state().bold"
+            (click)="toggle('bold')"
+          >
+            <strong>B</strong>
+          </button>
+        }
+        @case ('italic') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Italic — slant selected text (Ctrl+I)"
+            aria-label="Italic"
+            [class.is-active]="state().italic"
+            [attr.aria-pressed]="state().italic"
+            (click)="toggle('italic')"
+          >
+            <em>I</em>
+          </button>
+        }
+        @case ('underline') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Underline selected text (Ctrl+U)"
+            aria-label="Underline"
+            [class.is-active]="state().underline"
+            [attr.aria-pressed]="state().underline"
+            (click)="toggle('underline')"
+          >
+            <span style="text-decoration: underline">U</span>
+          </button>
+        }
+        @case ('strike') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Strikethrough — draw a line through selected text"
+            aria-label="Strikethrough"
+            [class.is-active]="state().strike"
+            [attr.aria-pressed]="state().strike"
+            (click)="toggle('strike')"
+          >
+            <span style="text-decoration: line-through">S</span>
+          </button>
+        }
+        @case ('textColor') {
+          <div class="ngx-rte-toolbar__dropdown">
+            <button
+              type="button"
+              class="ngx-rte-toolbar__btn"
+              data-tooltip="Text color — change the color of selected text"
+              aria-label="Text color"
+              (click)="showTextColor.set(!showTextColor()); showBgColor.set(false)"
+            >
+              A
+              <span class="ngx-rte-toolbar__swatch" [style.background]="state().textColor || '#000'"></span>
+            </button>
+            @if (showTextColor()) {
+              <div class="ngx-rte-toolbar__palette" role="listbox" aria-label="Text color palette">
+                @for (c of palette; track c) {
+                  <button
+                    type="button"
+                    class="ngx-rte-toolbar__color"
+                    [attr.data-tooltip]="'Apply text color ' + c"
+                    [attr.aria-label]="'Text color ' + c"
+                    [style.background]="c"
+                    (click)="pickTextColor(c)"
+                  ></button>
+                }
+                <button
+                  type="button"
+                  class="ngx-rte-toolbar__btn ngx-rte-toolbar__btn--wide"
+                  data-tooltip="Remove custom text color"
+                  aria-label="Clear text color"
+                  (click)="pickTextColor(null)"
+                >
+                  Clear
+                </button>
+              </div>
+            }
+          </div>
+        }
+        @case ('backgroundColor') {
+          <div class="ngx-rte-toolbar__dropdown">
+            <button
+              type="button"
+              class="ngx-rte-toolbar__btn"
+              data-tooltip="Highlight — set background color behind selected text"
+              aria-label="Highlight color"
+              (click)="showBgColor.set(!showBgColor()); showTextColor.set(false)"
+            >
+              ▮
+              <span class="ngx-rte-toolbar__swatch" [style.background]="state().backgroundColor || '#ffe566'"></span>
+            </button>
+            @if (showBgColor()) {
+              <div class="ngx-rte-toolbar__palette" role="listbox" aria-label="Highlight color palette">
+                @for (c of palette; track c) {
+                  <button
+                    type="button"
+                    class="ngx-rte-toolbar__color"
+                    [attr.data-tooltip]="'Apply highlight ' + c"
+                    [attr.aria-label]="'Highlight color ' + c"
+                    [style.background]="c"
+                    (click)="pickBgColor(c)"
+                  ></button>
+                }
+                <button
+                  type="button"
+                  class="ngx-rte-toolbar__btn ngx-rte-toolbar__btn--wide"
+                  data-tooltip="Remove highlight color"
+                  aria-label="Clear highlight"
+                  (click)="pickBgColor(null)"
+                >
+                  Clear
+                </button>
+              </div>
+            }
+          </div>
+        }
+        @case ('align') {
+          <select
+            class="ngx-rte-toolbar__select"
+            data-tooltip="Align text — left, center, right, or justify"
+            aria-label="Text alignment"
+            [ngModel]="state().align"
+            (ngModelChange)="setAlign($event)"
+          >
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+            <option value="justify">Justify</option>
+          </select>
+        }
+        @case ('direction') {
+          <div class="ngx-rte-toolbar__dir" role="group" aria-label="Text direction">
+            <button
+              type="button"
+              class="ngx-rte-toolbar__btn"
+              data-tooltip="Left to right (LTR) — for English and most Latin languages"
+              aria-label="Left to right"
+              [class.is-active]="state().direction === 'ltr'"
+              [attr.aria-pressed]="state().direction === 'ltr'"
+              (click)="setDirection('ltr')"
+            >
+              LTR
+            </button>
+            <button
+              type="button"
+              class="ngx-rte-toolbar__btn"
+              data-tooltip="Right to left (RTL) — for Hebrew, Arabic, and similar languages"
+              aria-label="Right to left"
+              [class.is-active]="state().direction === 'rtl'"
+              [attr.aria-pressed]="state().direction === 'rtl'"
+              (click)="setDirection('rtl')"
+            >
+              RTL
+            </button>
+          </div>
+        }
+        @case ('orderedList') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Numbered list — create or remove an ordered list"
+            aria-label="Numbered list"
+            [class.is-active]="state().orderedList"
+            [attr.aria-pressed]="state().orderedList"
+            (click)="toggleList(true)"
+          >
+            1.
+          </button>
+        }
+        @case ('bulletList') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Bullet list — create or remove an unordered list"
+            aria-label="Bullet list"
+            [class.is-active]="state().bulletList"
+            [attr.aria-pressed]="state().bulletList"
+            (click)="toggleList(false)"
+          >
+            •
+          </button>
+        }
+        @case ('link') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Link — insert or edit a hyperlink on the selection"
+            aria-label="Insert link"
+            [class.is-active]="state().link"
+            (click)="openLink()"
+          >
+            🔗
+          </button>
+        }
+        @case ('image') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Image — upload and insert a picture into the text"
+            aria-label="Insert image"
+            (click)="pickImage()"
+          >
+            🖼
+          </button>
+        }
+        @case ('table') {
+          <span class="ngx-rte-toolbar__dropdown">
+            <button
+              type="button"
+              class="ngx-rte-toolbar__btn"
+              [attr.data-tooltip]="
+                showTablePicker()
+                  ? null
+                  : 'Table — choose how many rows and columns to insert'
+              "
+              aria-label="Insert table"
+              [attr.aria-expanded]="showTablePicker()"
+              (click)="openTablePicker($event)"
+            >
+              ▦
+            </button>
+            @if (showTablePicker()) {
+              <div
+                class="ngx-rte-toolbar__popover"
+                [class.is-align-end]="pickerAlignEnd()"
+                role="dialog"
+                aria-label="Insert table"
+              >
+                <div
+                  class="ngx-rte-toolbar__grid"
+                  (mouseleave)="hoverCell(0, 0)"
+                  [style.gridTemplateColumns]="'repeat(' + pickerColumnList.length + ', 16px)'"
+                >
+                  @for (row of pickerRowList; track row) {
+                    @for (col of pickerColumnList; track col) {
+                      <button
+                        type="button"
+                        class="ngx-rte-toolbar__grid-cell"
+                        [class.is-active]="row <= hoverRows() && col <= hoverColumns()"
+                        [attr.aria-label]="'Insert ' + row + ' by ' + col + ' table'"
+                        (mouseenter)="hoverCell(row, col)"
+                        (focus)="hoverCell(row, col)"
+                        (click)="insertPickedTable(row, col)"
+                      ></button>
+                    }
+                  }
+                </div>
+
+                <p class="ngx-rte-toolbar__grid-label" aria-live="polite">
+                  @if (hoverRows()) {
+                    {{ hoverRows() }} × {{ hoverColumns() }}
+                  } @else {
+                    Pick a size or type it below
+                  }
+                </p>
+
+                <div class="ngx-rte-toolbar__fields">
+                  <label class="ngx-rte-toolbar__field">
+                    Rows
+                    <input
+                      type="number"
+                      class="ngx-rte-toolbar__number"
+                      aria-label="Table rows"
+                      min="1"
+                      [max]="tableConfig.maxRows"
+                      [ngModel]="tableRows()"
+                      (ngModelChange)="setTableRows($event)"
+                    />
+                  </label>
+                  <label class="ngx-rte-toolbar__field">
+                    Columns
+                    <input
+                      type="number"
+                      class="ngx-rte-toolbar__number"
+                      aria-label="Table columns"
+                      min="1"
+                      [max]="tableConfig.maxColumns"
+                      [ngModel]="tableColumns()"
+                      (ngModelChange)="setTableColumns($event)"
+                    />
+                  </label>
+                </div>
+
+                <label class="ngx-rte-toolbar__check">
+                  <input
+                    type="checkbox"
+                    aria-label="Header row"
+                    [ngModel]="tableHeader()"
+                    (ngModelChange)="tableHeader.set($event)"
+                  />
+                  Header row
+                </label>
+
+                <button
+                  type="button"
+                  class="ngx-rte-toolbar__btn ngx-rte-toolbar__btn--wide"
+                  aria-label="Insert table of the chosen size"
+                  (click)="insertTable()"
+                >
+                  Insert table
+                </button>
+              </div>
+            }
+          </span>
+
+          @if (state().inTable) {
+            <span class="ngx-rte-toolbar__group" role="group" aria-label="Table rows and columns">
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Insert a row above the current one"
+                aria-label="Insert row above"
+                (click)="addTableRow('above')"
+              >
+                ⤒
+              </button>
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Insert a row below the current one"
+                aria-label="Insert row below"
+                (click)="addTableRow('below')"
+              >
+                ⤓
+              </button>
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Insert a column to the left"
+                aria-label="Insert column left"
+                (click)="addTableColumn('before')"
+              >
+                ⇤
+              </button>
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Insert a column to the right"
+                aria-label="Insert column right"
+                (click)="addTableColumn('after')"
+              >
+                ⇥
+              </button>
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Delete the current row"
+                aria-label="Delete row"
+                (click)="removeTableRow()"
+              >
+                ⊟
+              </button>
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Delete the current column"
+                aria-label="Delete column"
+                (click)="removeTableColumn()"
+              >
+                ⊞
+              </button>
+              <button
+                type="button"
+                class="ngx-rte-toolbar__btn"
+                data-tooltip="Delete the whole table"
+                aria-label="Delete table"
+                (click)="removeTable()"
+              >
+                ⌫
+              </button>
+            </span>
+          }
+        }
+        @case ('source') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="HTML source — view or edit the raw HTML"
+            aria-label="HTML source"
+            (click)="toggleSource()"
+          >
+            &lt;/&gt;
+          </button>
+        }
+        @case ('fullscreen') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Fullscreen — expand the editor to fill the screen"
+            aria-label="Fullscreen"
+            (click)="toggleFullscreen()"
+          >
+            ⛶
+          </button>
+        }
+        @case ('clear') {
+          <button
+            type="button"
+            class="ngx-rte-toolbar__btn"
+            data-tooltip="Clear formatting — remove styles from the selection"
+            aria-label="Clear formatting"
+            (click)="clear()"
+          >
+            Tx
+          </button>
+        }
+      }
+    }
+  }
+</div>
+
+<input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+
+@if (showLinkDialog()) {
+  <div class="ngx-rte-toolbar__dialog" role="dialog" aria-label="Insert link">
+    <input
+      type="url"
+      class="ngx-rte-toolbar__input"
+      data-tooltip="Enter the full URL for the link"
+      aria-label="Link URL"
+      [ngModel]="linkUrl()"
+      (ngModelChange)="linkUrl.set($event)"
+      placeholder="https://example.com"
+    />
+    <button
+      type="button"
+      class="ngx-rte-toolbar__btn"
+      data-tooltip="Apply this URL to the selection"
+      aria-label="Apply link"
+      (click)="applyLink()"
+    >
+      Apply
+    </button>
+    <button
+      type="button"
+      class="ngx-rte-toolbar__btn"
+      data-tooltip="Remove the link from the selection"
+      aria-label="Remove link"
+      (click)="removeLink()"
+    >
+      Remove
+    </button>
+    <button
+      type="button"
+      class="ngx-rte-toolbar__btn"
+      data-tooltip="Close without changing the link"
+      aria-label="Cancel"
+      (click)="cancelLink()"
+    >
+      Cancel
+    </button>
+  </div>
+}
