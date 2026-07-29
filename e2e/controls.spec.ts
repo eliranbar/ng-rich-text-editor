@@ -17,6 +17,44 @@ async function selectAll(page: Page): Promise<void> {
   await page.keyboard.press('ControlOrMeta+A');
 }
 
+/** Set a deterministic text selection inside the editor. */
+async function selectTextRange(page: Page, start: number, end = start): Promise<void> {
+  await page.locator(EDITOR).evaluate(
+    (editor, offsets) => {
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+      const points: Array<{ node: Text; start: number; end: number }> = [];
+      let length = 0;
+      let node: Node | null;
+
+      while ((node = walker.nextNode())) {
+        const text = node as Text;
+        points.push({ node: text, start: length, end: length + text.length });
+        length += text.length;
+      }
+
+      const pointAt = (offset: number): [Text, number] => {
+        const point = points.find(({ end: pointEnd }) => offset <= pointEnd);
+        if (!point) {
+          throw new Error(`Selection offset ${offset} exceeds editor text length ${length}`);
+        }
+        return [point.node, offset - point.start];
+      };
+
+      const [startNode, startOffset] = pointAt(offsets.start);
+      const [endNode, endOffset] = pointAt(offsets.end);
+      const range = document.createRange();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+
+      (editor as HTMLElement).focus();
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    },
+    { start, end },
+  );
+}
+
 function html(page: Page) {
   return page.locator(OUTPUT);
 }
@@ -74,15 +112,7 @@ test.describe('inline marks keep valid structure', () => {
 
   test('bold on part of a word leaves the rest unformatted', async ({ page }) => {
     await typeFresh(page, 'abcdef');
-    // Select the middle two characters
-    await page.locator(EDITOR).click();
-    await page.keyboard.press('Home');
-    for (let i = 0; i < 2; i++) {
-      await page.keyboard.press('ArrowRight');
-    }
-    for (let i = 0; i < 2; i++) {
-      await page.keyboard.press('Shift+ArrowRight');
-    }
+    await selectTextRange(page, 2, 4);
     await page.getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('ab<strong>cd</strong>ef');
   });
@@ -93,14 +123,7 @@ test.describe('inline marks keep valid structure', () => {
     await page.getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<strong>abcdef</strong>');
 
-    await page.locator(EDITOR).click();
-    await page.keyboard.press('Home');
-    for (let i = 0; i < 2; i++) {
-      await page.keyboard.press('ArrowRight');
-    }
-    for (let i = 0; i < 2; i++) {
-      await page.keyboard.press('Shift+ArrowRight');
-    }
+    await selectTextRange(page, 2, 4);
     await page.getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<strong>ab</strong>cd<strong>ef</strong>');
   });
@@ -366,11 +389,7 @@ test.describe('table', () => {
 
   test('splits the paragraph when the caret is mid-text', async ({ page }) => {
     await typeFresh(page, 'headtail');
-    await page.locator(EDITOR).click();
-    await page.keyboard.press('Home');
-    for (let i = 0; i < 4; i++) {
-      await page.keyboard.press('ArrowRight');
-    }
+    await selectTextRange(page, 4);
     await insertTable(page, 2, 2);
 
     await expect(html(page)).toContainText('<p>head</p>');

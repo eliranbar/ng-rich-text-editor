@@ -82,9 +82,9 @@
           {{ showHtml() ? 'Hide' : 'Show' }} HTML output
         </button>
       </div>
-      @if (showHtml()) {
+      <div class="demo__preview" [hidden]="!showHtml()">
         <pre class="demo-window__html">{{ html }}</pre>
-      }
+      </div>
     </div>
   </section>
 
