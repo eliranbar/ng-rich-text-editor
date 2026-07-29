@@ -1,5 +1,4 @@
 import { Component, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
   RteEditorComponent,
   RteToolbarComponent,
@@ -22,7 +21,7 @@ export interface QuickStartStep {
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, RteEditorComponent, RteToolbarComponent, RteWrapperComponent],
+  imports: [RteEditorComponent, RteToolbarComponent, RteWrapperComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -30,20 +29,20 @@ export class App {
   readonly dark = signal(false);
   readonly showHtml = signal(false);
 
-  html = `<p>Welcome to <strong>ngx-richtext</strong> — a professional Angular rich text editor.</p>
+  readonly html = signal(`<p>Welcome to <strong>ngx-richtext</strong> — a professional Angular rich text editor.</p>
 <ul>
   <li>Format with the toolbar above</li>
   <li>Paste from Word / Docs</li>
   <li>Drop or insert images (uploaded by the host app)</li>
 </ul>
-<p dir="rtl">עברית: לחצו על <strong>RTL</strong> בסרגל הכלים כדי לערוך מימין לשמאל.</p>`;
+<p dir="rtl">עברית: לחצו על <strong>RTL</strong> בסרגל הכלים כדי לערוך מימין לשמאל.</p>`);
 
   readonly badges = ['Angular 21+', 'MIT License', 'Zero config', 'Forms-ready'];
 
   readonly highlights = [
     {
       title: 'Sanitized HTML',
-      description: 'Safe output ready for ngModel and reactive forms — no custom serializers.',
+      description: 'Safe output ready for signal models and reactive forms — no custom serializers.',
     },
     {
       title: 'Host-owned uploads',
@@ -90,7 +89,7 @@ export const appConfig = {
       lang: 'html',
       code: `<ngx-rte-wrapper>
   <ngx-rte-toolbar [editor]="editor" />
-  <ngx-rte #editor [(ngModel)]="html"
+  <ngx-rte #editor [(value)]="html"
             placeholder="Type here…" />
 </ngx-rte-wrapper>`,
     },

@@ -32,11 +32,12 @@
         }
         @case ('heading') {
           <select
+            #headingSelect
             class="ngx-rte-toolbar__select"
             data-tooltip="Change paragraph style (heading, quote, or body text)"
             aria-label="Paragraph style"
-            [ngModel]="state().blockType"
-            (ngModelChange)="setHeading($event)"
+            [value]="state().blockType"
+            (change)="setHeading(headingSelect.value)"
           >
             <option value="p">Paragraph</option>
             <option value="h1">Heading 1</option>
@@ -173,11 +174,12 @@
         }
         @case ('align') {
           <select
+            #alignSelect
             class="ngx-rte-toolbar__select"
             data-tooltip="Align text — left, center, right, or justify"
             aria-label="Text alignment"
-            [ngModel]="state().align"
-            (ngModelChange)="setAlign($event)"
+            [value]="state().align"
+            (change)="setAlign(alignSelect.value)"
           >
             <option value="left">Left</option>
             <option value="center">Center</option>
@@ -315,35 +317,38 @@
                   <label class="ngx-rte-toolbar__field">
                     Rows
                     <input
+                      #rowsInput
                       type="number"
                       class="ngx-rte-toolbar__number"
                       aria-label="Table rows"
                       min="1"
                       [max]="tableConfig.maxRows"
-                      [ngModel]="tableRows()"
-                      (ngModelChange)="setTableRows($event)"
+                      [value]="tableRows()"
+                      (input)="setTableRows(rowsInput.valueAsNumber)"
                     />
                   </label>
                   <label class="ngx-rte-toolbar__field">
                     Columns
                     <input
+                      #columnsInput
                       type="number"
                       class="ngx-rte-toolbar__number"
                       aria-label="Table columns"
                       min="1"
                       [max]="tableConfig.maxColumns"
-                      [ngModel]="tableColumns()"
-                      (ngModelChange)="setTableColumns($event)"
+                      [value]="tableColumns()"
+                      (input)="setTableColumns(columnsInput.valueAsNumber)"
                     />
                   </label>
                 </div>
 
                 <label class="ngx-rte-toolbar__check">
                   <input
+                    #headerInput
                     type="checkbox"
                     aria-label="Header row"
-                    [ngModel]="tableHeader()"
-                    (ngModelChange)="tableHeader.set($event)"
+                    [checked]="tableHeader()"
+                    (change)="tableHeader.set(headerInput.checked)"
                   />
                   Header row
                 </label>
@@ -471,12 +476,13 @@
 @if (showLinkDialog()) {
   <div class="ngx-rte-toolbar__dialog" role="dialog" aria-label="Insert link">
     <input
+      #linkInput
       type="url"
       class="ngx-rte-toolbar__input"
       data-tooltip="Enter the full URL for the link"
       aria-label="Link URL"
-      [ngModel]="linkUrl()"
-      (ngModelChange)="linkUrl.set($event)"
+      [value]="linkUrl()"
+      (input)="linkUrl.set(linkInput.value)"
       placeholder="https://example.com"
     />
     <button

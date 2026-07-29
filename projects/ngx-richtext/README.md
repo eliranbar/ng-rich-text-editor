@@ -21,8 +21,8 @@ Import styles once in your global stylesheet:
 ## Quick start
 
 ```ts
+import { signal } from '@angular/core';
 import { provideRichTextEditor, RteEditorComponent, RteToolbarComponent, RteWrapperComponent } from 'ngx-richtext';
-import { FormsModule } from '@angular/forms';
 
 export const appConfig = {
   providers: [
@@ -33,16 +33,19 @@ export const appConfig = {
     }),
   ],
 };
+
+readonly html = signal('');
 ```
 
 ```html
 <ngx-rte-wrapper>
   <ngx-rte-toolbar [editor]="editor" />
-  <ngx-rte #editor [(ngModel)]="html" placeholder="Type here…" />
+  <ngx-rte #editor [(value)]="html" placeholder="Type here…" />
 </ngx-rte-wrapper>
 ```
 
-The editor value is a **sanitized HTML string** suitable for `ngModel` / reactive forms.
+The editor's `value` model signal is a **sanitized HTML string**. The component also
+implements `ControlValueAccessor` for reactive-forms compatibility.
 
 ## RTL / Hebrew & Arabic
 
@@ -51,7 +54,7 @@ Use the **LTR** / **RTL** toolbar buttons to set writing direction on the curren
 You can also set a default for the whole editor:
 
 ```html
-<ngx-rte [dir]="'rtl'" [(ngModel)]="html" />
+<ngx-rte [dir]="'rtl'" [(value)]="html" />
 ```
 
 ## Tables
@@ -160,7 +163,8 @@ Use `[theme]="'dark'"` on `<ngx-rte-wrapper>` or add class `ngx-rte-theme-dark`.
 
 ### `<ngx-rte>`
 
-Inputs: `placeholder`, `disabled`, `minHeight`  
+Models: `value`  
+Inputs: `placeholder`, `disabled`, `minHeight`, `dir`  
 Outputs: `contentChange`, `focused`, `blurred`, `imageUploadError`, `imageRequest`, `selectionStateChange`  
 Implements `ControlValueAccessor`.
 

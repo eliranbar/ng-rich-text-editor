@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * ```html
  * <ngx-rte-wrapper>
  *   <ngx-rte-toolbar [editor]="editor" />
- *   <ngx-rte #editor [(ngModel)]="html" />
+ *   <ngx-rte #editor [(value)]="html" />
  * </ngx-rte-wrapper>
  * ```
  */

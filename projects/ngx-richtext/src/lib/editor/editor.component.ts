@@ -4,9 +4,11 @@ import {
   ElementRef,
   OnDestroy,
   AfterViewInit,
+  effect,
   forwardRef,
   inject,
   input,
+  model,
   output,
   signal,
   viewChild,
@@ -48,6 +50,8 @@ import { sanitizeHtml } from '../core/sanitizer';
   },
 })
 export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, OnDestroy {
+  /** Signal-based editor value. Supports two-way binding with `[(value)]`. */
+  readonly value = model('');
   readonly placeholder = input('Type here...');
   readonly disabled = input(false);
   readonly minHeight = input('160px');
@@ -85,6 +89,16 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   private writing = false;
   private pendingValue: string | null = null;
   private viewReady = false;
+  private usingControlValueAccessor = false;
+
+  constructor() {
+    effect(() => {
+      const value = this.value();
+      if (!this.usingControlValueAccessor && (!this.viewReady || value !== this.getHtml())) {
+        this.writeValue(value);
+      }
+    });
+  }
 
   async ngAfterViewInit(): Promise<void> {
     await this.features?.init();
@@ -134,6 +148,7 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   registerOnChange(fn: (value: string) => void): void {
+    this.usingControlValueAccessor = true;
     this.onChange = fn;
   }
 
@@ -338,6 +353,7 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
     const html = this.serializer.serialize(root);
     this.empty.set(isEditorEmpty(root));
     this.updateCounts();
+    this.value.set(html);
     this.onChange(html);
     this.contentChange.emit(html);
   }

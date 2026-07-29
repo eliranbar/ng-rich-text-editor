@@ -9,7 +9,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RteEditorComponent } from '../editor/editor.component';
 import { SavedOffsets, SelectionState } from '../core/selection.service';
 import {
@@ -44,7 +43,6 @@ const COLOR_PALETTE = [
 @Component({
   selector: 'ngx-rte-toolbar',
   standalone: true,
-  imports: [FormsModule],
   templateUrl: './toolbar.component.html',
   styleUrl: './toolbar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

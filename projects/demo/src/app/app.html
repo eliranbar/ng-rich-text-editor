@@ -65,7 +65,7 @@
           <ngx-rte-toolbar [editor]="editor" />
           <ngx-rte
             #editor
-            [(ngModel)]="html"
+            [(value)]="html"
             placeholder="Type freely…"
             minHeight="280px"
             (imageUploadError)="onImageError($event)"
@@ -83,7 +83,7 @@
         </button>
       </div>
       <div class="demo__preview" [hidden]="!showHtml()">
-        <pre class="demo-window__html">{{ html }}</pre>
+        <pre class="demo-window__html">{{ html() }}</pre>
       </div>
     </div>
   </section>

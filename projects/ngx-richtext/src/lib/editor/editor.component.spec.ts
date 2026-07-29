@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RteEditorComponent } from './editor.component';
 import { provideRichTextEditor } from '../config/provide';
@@ -10,7 +9,7 @@ describe('RteEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RteEditorComponent, FormsModule],
+      imports: [RteEditorComponent],
       providers: [provideRichTextEditor({})],
     }).compileComponents();
 
@@ -37,5 +36,6 @@ describe('RteEditorComponent', () => {
     el.innerHTML = '<p><strong>Bold</strong></p>';
     el.dispatchEvent(new Event('input'));
     expect(emitted).toContain('strong');
+    expect(component.value()).toContain('strong');
   });
 });
