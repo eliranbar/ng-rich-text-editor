@@ -4,10 +4,10 @@
 html,
 body {
   margin: 0;
-  background: #f2f4f7;
+  background: #070a14;
+  color: #e8eefc;
 }
 
-body.demo-dark,
-.demo--dark {
-  background: #020617;
+html {
+  scroll-behavior: smooth;
 }

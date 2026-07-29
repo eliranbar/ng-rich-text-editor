@@ -1,29 +1,169 @@
-<main class="demo" [class.demo--dark]="dark()">
-  <header class="demo__header">
-    <div>
-      <h1>ngx-richtext</h1>
-      <p>Professional Angular rich text editor · free + premium tiers</p>
+<div class="page">
+  <!-- Nav -->
+  <nav class="nav">
+    <a class="nav__brand" href="#" (click)="$event.preventDefault(); scrollTo('top')">
+      <img src="rich_text_logo.jpg" alt="ngx-richtext" width="36" height="36" />
+      <span>ngx-richtext</span>
+    </a>
+    <div class="nav__links">
+      <button type="button" class="nav__link" (click)="scrollTo('demo')">Demo</button>
+      <button type="button" class="nav__link" (click)="scrollTo('quickstart')">Quick start</button>
+      <button type="button" class="nav__link" (click)="scrollTo('features')">Features</button>
     </div>
-    <button type="button" class="demo__theme" (click)="dark.set(!dark())">
-      {{ dark() ? 'Light mode' : 'Dark mode' }}
-    </button>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="top">
+    <div class="hero__glow" aria-hidden="true"></div>
+    <img
+      class="hero__logo"
+      src="rich_text_logo.jpg"
+      alt="ngx-richtext logo"
+      width="160"
+      height="160"
+    />
+    <p class="hero__eyebrow">Angular rich text editor</p>
+    <h1 class="hero__title">ngx-richtext</h1>
+    <p class="hero__tagline">
+      The Angular rich text editor that just works.<br />
+      Drop it in, wire forms, ship beautiful content — in minutes.
+    </p>
+    <div class="hero__badges">
+      @for (badge of badges; track badge) {
+        <span class="badge">{{ badge }}</span>
+      }
+    </div>
+    <div class="hero__cta">
+      <button type="button" class="btn btn--primary" (click)="scrollTo('demo')">
+        Try the live demo
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="scrollTo('quickstart')">
+        Quick start guide
+      </button>
+    </div>
   </header>
 
-  <section class="demo__editor">
-    <ngx-rte-wrapper [theme]="dark() ? 'dark' : 'light'">
-      <ngx-rte-toolbar [editor]="editor" />
-      <ngx-rte
-        #editor
-        [(ngModel)]="html"
-        placeholder="Type freely…"
-        minHeight="280px"
-        (imageUploadError)="onImageError($event)"
-      />
-    </ngx-rte-wrapper>
+  <!-- Live demo -->
+  <section class="section" id="demo">
+    <div class="section__head">
+      <h2>See it in action</h2>
+      <p>Type, format, paste, drop images — everything runs in your browser right now.</p>
+    </div>
+
+    <div class="demo-window">
+      <div class="demo-window__chrome">
+        <div class="demo-window__dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="demo-window__title">Live editor</span>
+        <button type="button" class="btn btn--sm" (click)="dark.set(!dark())">
+          {{ dark() ? 'Light' : 'Dark' }} mode
+        </button>
+      </div>
+      <div class="demo-window__body" [class.demo-window__body--dark]="dark()">
+        <ngx-rte-wrapper [theme]="dark() ? 'dark' : 'light'">
+          <ngx-rte-toolbar [editor]="editor" />
+          <ngx-rte
+            #editor
+            [(ngModel)]="html"
+            placeholder="Type freely…"
+            minHeight="280px"
+            (imageUploadError)="onImageError($event)"
+          />
+        </ngx-rte-wrapper>
+      </div>
+      <div class="demo-window__footer">
+        <button
+          type="button"
+          class="btn btn--sm"
+          (click)="showHtml.set(!showHtml())"
+          [attr.aria-expanded]="showHtml()"
+        >
+          {{ showHtml() ? 'Hide' : 'Show' }} HTML output
+        </button>
+      </div>
+      @if (showHtml()) {
+        <pre class="demo-window__html">{{ html }}</pre>
+      }
+    </div>
   </section>
 
-  <section class="demo__preview">
-    <h2>HTML output</h2>
-    <pre>{{ html }}</pre>
+  <!-- Quick start -->
+  <section class="section" id="quickstart">
+    <div class="section__head">
+      <h2>Up and running in three steps</h2>
+      <p>
+        Simplicity first. Install, provide, and drop three tags into your template —
+        you're editing rich text.
+      </p>
+    </div>
+
+    <ol class="steps">
+      @for (step of quickStart; track step.title; let i = $index) {
+        <li class="step">
+          <div class="step__meta">
+            <span class="step__num">{{ i + 1 }}</span>
+            <div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.description }}</p>
+            </div>
+          </div>
+          <pre class="code"><code>{{ step.code }}</code></pre>
+        </li>
+      }
+    </ol>
   </section>
-</main>
+
+  <!-- Capabilities -->
+  <section class="section" id="features">
+    <div class="section__head">
+      <h2>Everything you need — nothing you don't</h2>
+      <p>
+        A focused free tier for everyday editing, plus premium power features when you're ready.
+      </p>
+    </div>
+
+    <div class="features">
+      @for (feature of features; track feature.title) {
+        <article class="feature">
+          <div class="feature__top">
+            <span class="feature__icon" aria-hidden="true">{{ feature.icon }}</span>
+            @if (feature.premium) {
+              <span class="badge badge--premium">Premium</span>
+            }
+          </div>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- Why -->
+  <section class="section section--tight" id="why">
+    <div class="section__head">
+      <h2>Built for Angular developers</h2>
+      <p>Familiar patterns. No framework lock-in. Ship content UIs without the ceremony.</p>
+    </div>
+    <div class="highlights">
+      @for (item of highlights; track item.title) {
+        <article class="highlight">
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__brand">
+      <img src="rich_text_logo.jpg" alt="" width="40" height="40" />
+      <div>
+        <strong>ngx-richtext</strong>
+        <p>MIT licensed · Free to use · Premium via offline key</p>
+      </div>
+    </div>
+    <pre class="footer__install"><code>npm install ngx-richtext</code></pre>
+  </footer>
+</div>
