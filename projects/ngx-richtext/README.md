@@ -8,7 +8,7 @@ Professional Angular rich text editor — toolbar + contenteditable area, HTML v
 npm install ngx-richtext
 ```
 
-Peer dependencies: `@angular/core`, `@angular/common`, `@angular/forms` (v21+).
+Peer dependencies: `@angular/core`, `@angular/common`, `@angular/forms` (v18, v19, v20 or v21) and `rxjs`.
 
 Import styles once in your global stylesheet:
 
