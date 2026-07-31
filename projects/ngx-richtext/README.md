@@ -108,14 +108,14 @@ Without a handler, the toolbar still exposes the image button and emits `(imageR
 | Headings, lists, alignment, LTR/RTL direction, links | ✓ | ✓ |
 | Undo / redo, clear formatting | ✓ | ✓ |
 | Basic image insert | ✓ | ✓ |
-| Text & highlight colors | | ✓ |
-| Tables | | ✓ |
+| Text & highlight colors | ✓ | ✓ |
+| Tables (picker, header row, row/column editing) | ✓ | ✓ |
 | HTML source view | | ✓ |
 | Word / char counter | | ✓ |
 | Fullscreen | | ✓ |
 | Image resize helpers | | ✓ |
 
-Premium modules are also available as secondary entry points so free apps do not bundle them:
+Optional modules are also available as secondary entry points so apps only bundle what they use:
 
 ```ts
 import { createTableHtml } from 'ngx-richtext/tables';

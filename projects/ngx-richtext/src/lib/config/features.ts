@@ -12,11 +12,11 @@ export const RTE_FEATURES = {
   undoRedo: 'undoRedo',
   image: 'image',
   clearFormat: 'clearFormat',
-  /** Premium */
   textColor: 'textColor',
   backgroundColor: 'backgroundColor',
-  imageResize: 'imageResize',
   tables: 'tables',
+  /** Premium */
+  imageResize: 'imageResize',
   sourceView: 'sourceView',
   wordCount: 'wordCount',
   fullscreen: 'fullscreen',
@@ -37,13 +37,13 @@ export const FREE_FEATURES: readonly RteFeatureId[] = [
   RTE_FEATURES.undoRedo,
   RTE_FEATURES.image,
   RTE_FEATURES.clearFormat,
+  RTE_FEATURES.textColor,
+  RTE_FEATURES.backgroundColor,
+  RTE_FEATURES.tables,
 ];
 
 export const PREMIUM_FEATURES: readonly RteFeatureId[] = [
-  RTE_FEATURES.textColor,
-  RTE_FEATURES.backgroundColor,
   RTE_FEATURES.imageResize,
-  RTE_FEATURES.tables,
   RTE_FEATURES.sourceView,
   RTE_FEATURES.wordCount,
   RTE_FEATURES.fullscreen,

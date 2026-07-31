@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6
+
+- Tables and text / highlight colors are now part of the **free** tier — no license
+  key needed. They keep working exactly as before for licensed apps.
+- Premium is now: HTML source view, word count, fullscreen, and image resize helpers.
+
 ## 0.1.3
 
 - Tables are no longer fixed at 3×3. The table button opens a picker with a hover

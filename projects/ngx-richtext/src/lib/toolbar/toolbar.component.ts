@@ -19,7 +19,7 @@ import {
   ToolbarItem,
 } from '../config/tokens';
 import { FeatureGateService } from '../license/feature-gate.service';
-import { RTE_FEATURES, RteFeatureId } from '../config/features';
+import { FREE_FEATURES, RTE_FEATURES, RteFeatureId } from '../config/features';
 import { AlignType, BlockType, DirectionType } from '../core/command.service';
 
 /** Approximate width of the table popover, used to decide which side it opens on. */
@@ -133,17 +133,7 @@ export class RteToolbarComponent implements AfterViewInit, OnDestroy {
   can(feature: RteFeatureId): boolean {
     if (!this.features) {
       // Without provideRichTextEditor, allow free features only
-      return !(
-        [
-          RTE_FEATURES.textColor,
-          RTE_FEATURES.backgroundColor,
-          RTE_FEATURES.tables,
-          RTE_FEATURES.sourceView,
-          RTE_FEATURES.fullscreen,
-          RTE_FEATURES.imageResize,
-          RTE_FEATURES.wordCount,
-        ] as RteFeatureId[]
-      ).includes(feature);
+      return FREE_FEATURES.includes(feature);
     }
     return this.features.isEnabled(feature);
   }

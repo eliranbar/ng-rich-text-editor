@@ -125,13 +125,11 @@ export const appConfig = {
       icon: '🎨',
       title: 'Colors',
       description: 'Text and highlight colors for polished documents.',
-      premium: true,
     },
     {
       icon: '▦',
       title: 'Smart tables',
       description: 'Hover-grid picker, exact sizes, header rows, and post-insert edits.',
-      premium: true,
     },
     {
       icon: '</>',

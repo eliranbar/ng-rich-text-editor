@@ -19,6 +19,24 @@ describe('LicenseService', () => {
     expect(state.reason).toBe('missing-key');
   });
 
+  it('grants tables and colors without a license', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        LicenseService,
+        FeatureGateService,
+        { provide: RTE_CONFIG, useValue: {} },
+      ],
+    });
+    const gate = TestBed.inject(FeatureGateService);
+    await gate.init();
+    expect(gate.isEnabled(RTE_FEATURES.tables)).toBe(true);
+    expect(gate.isEnabled(RTE_FEATURES.textColor)).toBe(true);
+    expect(gate.isEnabled(RTE_FEATURES.backgroundColor)).toBe(true);
+    expect(gate.isEnabled(RTE_FEATURES.sourceView)).toBe(false);
+    expect(gate.isEnabled(RTE_FEATURES.fullscreen)).toBe(false);
+  });
+
   it('rejects a tampered key', async () => {
     TestBed.configureTestingModule({
       providers: [

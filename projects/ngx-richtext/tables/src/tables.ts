@@ -1,5 +1,5 @@
 /**
- * Premium table helpers for ngx-richtext.
+ * Table helpers for ngx-richtext.
  * Import from `ngx-richtext/tables` when you need programmatic table APIs.
  */
 export function createTableHtml(rows = 3, cols = 3): string {
