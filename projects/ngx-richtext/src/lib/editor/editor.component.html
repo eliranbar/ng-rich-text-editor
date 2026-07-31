@@ -1,3 +1,7 @@
+@if (showToolbar()) {
+  <ngx-rte-toolbar [editor]="self" [items]="toolbarItems()" />
+}
+
 <div
   #editable
   class="ngx-rte__content"

@@ -23,6 +23,26 @@ describe('RteEditorComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render the toolbar by default', () => {
+    expect(fixture.nativeElement.querySelector('ngx-rte-toolbar')).toBeTruthy();
+  });
+
+  it('should hide the toolbar when showToolbar is false', async () => {
+    fixture.componentRef.setInput('showToolbar', false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('ngx-rte-toolbar')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.ngx-rte__content')).toBeTruthy();
+  });
+
+  it('should treat the string "false" as off, so showToolbar="false" works', async () => {
+    fixture.componentRef.setInput('showToolbar', 'false');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.showToolbar()).toBe(false);
+    expect(fixture.nativeElement.querySelector('ngx-rte-toolbar')).toBeNull();
+  });
+
   it('should write and emit HTML via CVA', async () => {
     let emitted = '';
     component.registerOnChange((v) => (emitted = v));

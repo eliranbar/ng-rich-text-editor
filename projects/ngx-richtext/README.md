@@ -1,6 +1,6 @@
 # ngx-richtext
 
-Professional Angular rich text editor — toolbar + contenteditable area, HTML value format, host-delegated image uploads, and free/premium feature tiers unlocked by an offline signed license key.
+Professional Angular rich text editor — one tag, toolbar included, HTML value format, host-delegated image uploads, and free/premium feature tiers unlocked by an offline signed license key.
 
 ## Install
 
@@ -22,7 +22,7 @@ Import styles once in your global stylesheet:
 
 ```ts
 import { signal } from '@angular/core';
-import { provideRichTextEditor, RteEditorComponent, RteToolbarComponent, RteWrapperComponent } from 'ngx-richtext';
+import { provideRichTextEditor, RteEditorComponent } from 'ngx-richtext';
 
 export const appConfig = {
   providers: [
@@ -37,11 +37,37 @@ export const appConfig = {
 readonly html = signal('');
 ```
 
+Add `RteEditorComponent` to the component's `imports`, then drop in a single tag:
+
 ```html
-<ngx-rte-wrapper>
-  <ngx-rte-toolbar [editor]="editor" />
-  <ngx-rte #editor [(value)]="html" placeholder="Type here…" />
-</ngx-rte-wrapper>
+<ngx-rte [(value)]="html" placeholder="Type here…" />
+```
+
+That's the whole editor — toolbar included.
+
+### Toolbar on / off
+
+The toolbar renders by default. Set `showToolbar` to `false` for a plain editable surface:
+
+```html
+<ngx-rte showToolbar="false" [(value)]="html" />
+<ngx-rte [showToolbar]="!readonlyMode()" [(value)]="html" />
+```
+
+Override which controls it shows with `toolbarItems` (or globally via the `toolbar` config):
+
+```html
+<ngx-rte [toolbarItems]="['bold', 'italic', '|', 'link']" [(value)]="html" />
+```
+
+### Toolbar outside the editor
+
+To place the toolbar somewhere else, turn the built-in one off and bind
+`<ngx-rte-toolbar>` to the editor:
+
+```html
+<ngx-rte-toolbar [editor]="editor" />
+<ngx-rte #editor showToolbar="false" [(value)]="html" />
 ```
 
 The editor's `value` model signal is a **sanitized HTML string**. The component also
@@ -143,13 +169,13 @@ Pass the resulting `licenseKey` to `provideRichTextEditor`. Invalid / missing / 
 Override CSS custom properties:
 
 ```css
-.ngx-rte-wrapper {
+.ngx-rte {
   --rte-accent: #7c3aed;
   --rte-radius: 12px;
 }
 ```
 
-Use `[theme]="'dark'"` on `<ngx-rte-wrapper>` or add class `ngx-rte-theme-dark`.
+Use `[theme]="'dark'"` on `<ngx-rte>`, or add the class `ngx-rte-theme-dark` to any ancestor.
 
 ## API overview
 
@@ -164,13 +190,18 @@ Use `[theme]="'dark'"` on `<ngx-rte-wrapper>` or add class `ngx-rte-theme-dark`.
 ### `<ngx-rte>`
 
 Models: `value`  
-Inputs: `placeholder`, `disabled`, `minHeight`, `dir`  
+Inputs: `placeholder`, `disabled`, `minHeight`, `dir`, `showToolbar` (default `true`), `toolbarItems`, `theme`  
 Outputs: `contentChange`, `focused`, `blurred`, `imageUploadError`, `imageRequest`, `selectionStateChange`  
 Implements `ControlValueAccessor`.
 
 ### `<ngx-rte-toolbar>`
 
-Inputs: `editor` (required), `items` (optional toolbar layout)
+Only needed to place the toolbar outside the editor. Inputs: `editor` (required), `items` (optional toolbar layout)
+
+### `<ngx-rte-wrapper>`
+
+**Deprecated.** `<ngx-rte>` is a complete card on its own. The old three-tag layout
+still works, but new code should use `<ngx-rte>` alone.
 
 ## Development
 

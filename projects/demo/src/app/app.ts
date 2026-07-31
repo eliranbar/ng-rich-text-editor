@@ -1,9 +1,5 @@
 import { Component, signal } from '@angular/core';
-import {
-  RteEditorComponent,
-  RteToolbarComponent,
-  RteWrapperComponent,
-} from 'ngx-richtext';
+import { RteEditorComponent } from 'ngx-richtext';
 
 export interface FeatureCard {
   title: string;
@@ -21,7 +17,7 @@ export interface QuickStartStep {
 
 @Component({
   selector: 'app-root',
-  imports: [RteEditorComponent, RteToolbarComponent, RteWrapperComponent],
+  imports: [RteEditorComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -85,13 +81,13 @@ export const appConfig = {
     },
     {
       title: 'Drop in',
-      description: 'Three tags. That\'s the whole editor — toolbar, surface, done.',
+      description: 'One tag. That\'s the whole editor — toolbar, surface, done.',
       lang: 'html',
-      code: `<ngx-rte-wrapper>
-  <ngx-rte-toolbar [editor]="editor" />
-  <ngx-rte #editor [(value)]="html"
-            placeholder="Type here…" />
-</ngx-rte-wrapper>`,
+      code: `<ngx-rte [(value)]="html"
+         placeholder="Type here…" />
+
+<!-- surface only, no toolbar -->
+<ngx-rte showToolbar="false" [(value)]="html" />`,
     },
   ];
 

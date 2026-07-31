@@ -20,8 +20,11 @@ export {
   type RteFeatureId,
 } from './lib/config/features';
 
+/** The editor — toolbar included. This is the only component most apps need. */
 export { RteEditorComponent } from './lib/editor/editor.component';
+/** @deprecated `<ngx-rte>` is a complete card on its own. */
 export { RteWrapperComponent } from './lib/editor/wrapper.component';
+/** Only needed to place the toolbar outside the editor (`[showToolbar]="false"`). */
 export { RteToolbarComponent } from './lib/toolbar/toolbar.component';
 
 export {

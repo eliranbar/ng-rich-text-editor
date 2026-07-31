@@ -4,6 +4,7 @@ import {
   ElementRef,
   OnDestroy,
   AfterViewInit,
+  booleanAttribute,
   effect,
   forwardRef,
   inject,
@@ -15,7 +16,8 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { firstValueFrom, isObservable, Observable } from 'rxjs';
-import { RTE_CONFIG } from '../config/tokens';
+import { RTE_CONFIG, ToolbarItem } from '../config/tokens';
+import { RteToolbarComponent } from '../toolbar/toolbar.component';
 import { FeatureGateService } from '../license/feature-gate.service';
 import { SelectionService, SelectionState } from '../core/selection.service';
 import { CommandService } from '../core/command.service';
@@ -25,9 +27,19 @@ import { cleanPastedHtml } from '../core/paste';
 import { isEditorEmpty, normalizeEmptyEditor } from '../core/dom-utils';
 import { sanitizeHtml } from '../core/sanitizer';
 
+/**
+ * The whole editor: toolbar + editable surface in a single tag.
+ *
+ * @example
+ * ```html
+ * <ngx-rte [(value)]="html" placeholder="Type here…" />
+ * <ngx-rte showToolbar="false" [(value)]="html" />
+ * ```
+ */
 @Component({
   selector: 'ngx-rte',
   standalone: true,
+  imports: [RteToolbarComponent],
   templateUrl: './editor.component.html',
   styleUrl: './editor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +59,8 @@ import { sanitizeHtml } from '../core/sanitizer';
     '[class.ngx-rte--empty]': 'empty()',
     '[class.ngx-rte--fullscreen]': 'fullscreen()',
     '[class.ngx-rte--fullscreen-wrapped]': 'fullscreen() && wrapped()',
+    '[class.ngx-rte--toolbar]': 'showToolbar()',
+    '[class.ngx-rte--dark]': 'theme() === "dark"',
   },
 })
 export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, OnDestroy {
@@ -57,7 +71,15 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   readonly minHeight = input('160px');
   /** Default writing direction for the editable surface (`ltr` or `rtl`). */
   readonly dir = input<'ltr' | 'rtl'>('ltr');
+  /** Render the built-in toolbar. Set to `false` for an editable surface only. */
+  readonly showToolbar = input(true, { transform: booleanAttribute });
+  /** Toolbar layout override; falls back to the `toolbar` config, then the default set. */
+  readonly toolbarItems = input<ToolbarItem[] | null>(null);
+  readonly theme = input<'light' | 'dark'>('light');
   readonly editable = viewChild<ElementRef<HTMLElement>>('editable');
+
+  /** Handed to the built-in toolbar, which takes the editor it controls as an input. */
+  readonly self = this;
 
   readonly contentChange = output<string>();
   readonly focused = output<void>();
@@ -306,9 +328,13 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   toggleFullscreen(): void {
     const next = !this.fullscreen();
     this.fullscreen.set(next);
-    // When wrapped in a card the whole card must expand, otherwise the editor
-    // would cover the toolbar and leave every control unclickable.
-    const card = this.hostRef.nativeElement.closest('.ngx-rte-wrapper');
+    // The built-in toolbar lives inside the host, so expanding the host is
+    // enough. With an external toolbar the surrounding card must expand
+    // instead, otherwise the editor would cover the toolbar and leave every
+    // control unclickable.
+    const card = this.showToolbar()
+      ? null
+      : this.hostRef.nativeElement.closest('.ngx-rte-wrapper');
     card?.classList.toggle('ngx-rte-wrapper--fullscreen', next);
     this.wrapped.set(!!card);
   }

@@ -9,7 +9,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { RteEditorComponent } from '../editor/editor.component';
+// Type-only: the editor renders this toolbar in its own template, so a value
+// import here would create a runtime import cycle.
+import type { RteEditorComponent } from '../editor/editor.component';
 import { SavedOffsets, SelectionState } from '../core/selection.service';
 import {
   RTE_CONFIG,
@@ -40,6 +42,11 @@ const COLOR_PALETTE = [
   '#db2777',
 ];
 
+/**
+ * Formatting toolbar. `<ngx-rte>` renders this itself, so it only needs to be
+ * placed by hand when the toolbar must live outside the editor card
+ * (`<ngx-rte [showToolbar]="false">` plus a standalone `<ngx-rte-toolbar>`).
+ */
 @Component({
   selector: 'ngx-rte-toolbar',
   standalone: true,

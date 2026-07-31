@@ -5,6 +5,18 @@
   min-width: 0;
   background: var(--rte-surface, #fff);
   color: var(--rte-text, #1a1a1a);
+  /* The host is the card: it holds the toolbar and the editable surface. */
+  border: 1px solid var(--rte-border, #e4e7ec);
+  border-radius: var(--rte-radius, 10px);
+  box-shadow: var(--rte-shadow, 0 1px 2px rgba(16, 24, 40, 0.04));
+  /* Toolbar popovers and tooltips have to escape the card bounds. */
+  overflow: visible;
+}
+
+/* Round the built-in toolbar with the card instead of clipping the host,
+   which would cut off popovers. */
+ngx-rte-toolbar {
+  border-radius: var(--rte-radius, 10px) var(--rte-radius, 10px) 0 0;
 }
 
 .ngx-rte__content {
@@ -117,6 +129,7 @@
 
 .ngx-rte__source {
   flex: 1;
+  border-radius: 0 0 var(--rte-radius, 10px) var(--rte-radius, 10px);
   min-height: 160px;
   border: 0;
   outline: none;
@@ -147,7 +160,12 @@
   position: fixed;
   inset: 0;
   z-index: 10000;
+  border: 0;
   border-radius: 0 !important;
+}
+
+:host.ngx-rte--fullscreen ngx-rte-toolbar {
+  border-radius: 0;
 }
 
 /* Inside a wrapper card the card itself goes fullscreen, so the editor only

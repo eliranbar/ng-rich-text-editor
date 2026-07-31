@@ -61,16 +61,13 @@
         </button>
       </div>
       <div class="demo-window__body" [class.demo-window__body--dark]="dark()">
-        <ngx-rte-wrapper [theme]="dark() ? 'dark' : 'light'">
-          <ngx-rte-toolbar [editor]="editor" />
-          <ngx-rte
-            #editor
-            [(value)]="html"
-            placeholder="Type freely…"
-            minHeight="280px"
-            (imageUploadError)="onImageError($event)"
-          />
-        </ngx-rte-wrapper>
+        <ngx-rte
+          [theme]="dark() ? 'dark' : 'light'"
+          [(value)]="html"
+          placeholder="Type freely…"
+          minHeight="280px"
+          (imageUploadError)="onImageError($event)"
+        />
       </div>
       <div class="demo-window__footer">
         <button
@@ -93,7 +90,7 @@
     <div class="section__head">
       <h2>Up and running in three steps</h2>
       <p>
-        Simplicity first. Install, provide, and drop three tags into your template —
+        Simplicity first. Install, provide, and drop a single tag into your template —
         you're editing rich text.
       </p>
     </div>

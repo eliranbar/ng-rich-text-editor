@@ -24,8 +24,16 @@
   box-sizing: border-box;
 }
 
+/* Descendant selectors are required: the light rule above also matches nested
+   .ngx-rte / .ngx-rte-toolbar elements and would otherwise reset them. */
 .ngx-rte-wrapper--dark,
-.ngx-rte-theme-dark {
+.ngx-rte-theme-dark,
+.ngx-rte--dark,
+.ngx-rte-wrapper--dark .ngx-rte,
+.ngx-rte-wrapper--dark .ngx-rte-toolbar,
+.ngx-rte-theme-dark .ngx-rte,
+.ngx-rte-theme-dark .ngx-rte-toolbar,
+.ngx-rte--dark .ngx-rte-toolbar {
   --rte-surface: #0f172a;
   --rte-surface-muted: #1e293b;
   --rte-toolbar-bg: #1e293b;
@@ -41,12 +49,16 @@
   --rte-tooltip-text: #0f172a;
 }
 
-/* Keep card corners without clipping toolbar tooltips */
+/* Legacy `<ngx-rte-wrapper>` layout: the card is the wrapper, so the editor
+   inside it must not draw a second one. Keep card corners without clipping
+   toolbar tooltips. */
 .ngx-rte-wrapper > ngx-rte-toolbar {
   border-radius: var(--rte-radius, 10px) var(--rte-radius, 10px) 0 0;
 }
 
 .ngx-rte-wrapper > ngx-rte {
+  border: 0;
+  box-shadow: none;
   border-radius: 0 0 var(--rte-radius, 10px) var(--rte-radius, 10px);
   overflow: hidden;
 }

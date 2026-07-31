@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.8
+
+- **One tag instead of three.** `<ngx-rte>` now renders its own toolbar and card
+  chrome, so the whole editor is `<ngx-rte [(value)]="html" />`.
+- New `showToolbar` input (default `true`) toggles the built-in toolbar:
+  `<ngx-rte showToolbar="false" [(value)]="html" />`. Also accepts `[showToolbar]`.
+- New `toolbarItems` and `theme` inputs on `<ngx-rte>`.
+- `<ngx-rte-wrapper>` is deprecated and `<ngx-rte-toolbar>` is now only needed to
+  place the toolbar outside the editor. The old three-tag layout keeps working.
+- Fix: dark theme tokens were reset to their light values on nested `.ngx-rte` /
+  `.ngx-rte-toolbar` elements, so `[theme]="'dark'"` left the editor surface light.
+
 ## 0.1.6
 
 - Tables and text / highlight colors are now part of the **free** tier — no license
