@@ -88,6 +88,39 @@ test.describe('inline marks', () => {
       await expect(html(page)).not.toContainText(`<${tag}>`);
       await expect(html(page)).toContainText('toggle me');
     });
+
+    test(`${name} switches back off for text typed after it`, async ({ page }) => {
+      const button = page.getByRole('button', { name });
+
+      await typeFresh(page, 'plain ');
+      await button.click();
+      await expect(button).toHaveAttribute('aria-pressed', 'true');
+      await page.keyboard.type('marked');
+
+      await button.click();
+      await expect(button).toHaveAttribute('aria-pressed', 'false');
+      await page.keyboard.type('after');
+
+      await expect(html(page)).toContainText(`marked</${tag}>`);
+      await expect(html(page)).not.toContainText(`after</${tag}>`);
+    });
+
+    test(`${name} button clears while the caret sits inside the mark`, async ({ page }) => {
+      const button = page.getByRole('button', { name });
+
+      await typeFresh(page, 'abcdef');
+      await selectAll(page);
+      await button.click();
+      await expect(button).toHaveAttribute('aria-pressed', 'true');
+
+      // Caret in the middle of the marked run, nothing selected
+      await selectTextRange(page, 3);
+      await expect(button).toHaveAttribute('aria-pressed', 'true');
+      await button.click();
+      await expect(button).toHaveAttribute('aria-pressed', 'false');
+      await expect(html(page)).toContainText(`<${tag}>abc</${tag}>`);
+      await expect(html(page)).toContainText(`<${tag}>def</${tag}>`);
+    });
   }
 });
 

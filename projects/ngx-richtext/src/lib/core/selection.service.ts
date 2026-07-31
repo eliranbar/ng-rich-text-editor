@@ -213,10 +213,12 @@ export class SelectionService {
       return { ...EMPTY_STATE };
     }
 
-    const node =
-      range.startContainer.nodeType === Node.TEXT_NODE
-        ? range.startContainer.parentElement
-        : (range.startContainer as HTMLElement);
+    // Commands leave empty text nodes behind where they split content, and a
+    // selection can start in one of them. Reading marks off `startContainer`
+    // alone would then report "not bold" for a fully bold selection and the
+    // next click would bold it again instead of clearing it.
+    const selected = this.selectedTextNodes(range);
+    const node = this.anchorElement(range, selected);
 
     if (!node || !this.root.contains(node)) {
       return { ...EMPTY_STATE };
@@ -228,11 +230,11 @@ export class SelectionService {
     const direction = this.resolveDirection(node);
 
     return {
-      bold: this.hasAncestor(node, ['STRONG', 'B']),
-      italic: this.hasAncestor(node, ['EM', 'I']),
-      underline: this.hasAncestor(node, ['U']),
-      strike: this.hasAncestor(node, ['S', 'STRIKE']),
-      link: this.hasAncestor(node, ['A']),
+      bold: this.marked(selected, node, ['STRONG', 'B']),
+      italic: this.marked(selected, node, ['EM', 'I']),
+      underline: this.marked(selected, node, ['U']),
+      strike: this.marked(selected, node, ['S', 'STRIKE']),
+      link: this.marked(selected, node, ['A']),
       orderedList: !!node.closest('ol'),
       bulletList: !!node.closest('ul'),
       inTable: !!node.closest('th, td'),
@@ -243,6 +245,64 @@ export class SelectionService {
       backgroundColor: this.findStyle(node, 'background-color'),
       href: (node.closest('a') as HTMLAnchorElement | null)?.getAttribute('href') ?? null,
     };
+  }
+
+  /** Element the state is read from: the first selected text, else the caret. */
+  private anchorElement(range: Range, selected: Text[]): HTMLElement | null {
+    const node: Node = selected[0] ?? range.startContainer;
+    return node.nodeType === Node.TEXT_NODE
+      ? node.parentElement
+      : (node as HTMLElement);
+  }
+
+  /** A mark is active when every selected character carries it. */
+  private marked(selected: Text[], anchor: HTMLElement, tags: string[]): boolean {
+    if (selected.length === 0) {
+      return this.hasAncestor(anchor, tags);
+    }
+    return selected.every(
+      (node) => !!node.parentElement && this.hasAncestor(node.parentElement, tags),
+    );
+  }
+
+  /** Text nodes that contribute characters to the selection. */
+  private selectedTextNodes(range: Range): Text[] {
+    if (range.collapsed) {
+      return [];
+    }
+    const scope = range.commonAncestorContainer;
+    if (scope.nodeType === Node.TEXT_NODE) {
+      const text = scope as Text;
+      return this.selectedLength(range, text) > 0 ? [text] : [];
+    }
+
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+    const nodes: Text[] = [];
+    let node = walker.nextNode() as Text | null;
+    while (node) {
+      if (this.selectedLength(range, node) > 0) {
+        nodes.push(node);
+      }
+      node = walker.nextNode() as Text | null;
+    }
+    return nodes;
+  }
+
+  /** How many characters of `node` fall inside `range`; caret markers count as none. */
+  private selectedLength(range: Range, node: Text): number {
+    if (!node.data.replace(/​/g, '')) {
+      return 0;
+    }
+    try {
+      if (!range.intersectsNode(node)) {
+        return 0;
+      }
+    } catch {
+      return 0;
+    }
+    const from = node === range.startContainer ? range.startOffset : 0;
+    const to = node === range.endContainer ? range.endOffset : node.data.length;
+    return to - from;
   }
 
   private resolveBlockType(

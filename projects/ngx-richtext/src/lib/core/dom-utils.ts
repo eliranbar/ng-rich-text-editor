@@ -22,6 +22,18 @@ export const INLINE_MARK_TAGS: Record<string, string> = {
   strike: 'S',
 };
 
+/**
+ * Every tag that renders a mark, not just the one we author.
+ * Pasted or hand-written HTML uses `<b>`/`<i>`/`<strike>`, and the toolbar
+ * reports those as active — so toggling off has to remove them too.
+ */
+export const INLINE_MARK_ALIASES: Record<string, string[]> = {
+  bold: ['STRONG', 'B'],
+  italic: ['EM', 'I'],
+  underline: ['U'],
+  strike: ['S', 'STRIKE'],
+};
+
 export const ALLOWED_TAGS = new Set([
   'P',
   'BR',
@@ -157,6 +169,7 @@ export function normalizeEmptyEditor(root: HTMLElement): void {
 }
 
 export function isEditorEmpty(root: HTMLElement): boolean {
-  const text = root.textContent?.replace(/\u00a0/g, ' ').trim() ?? '';
+  // Zero-width markers are caret placeholders left by the mark commands, not content
+  const text = root.textContent?.replace(/\u00a0/g, ' ').replace(/\u200b/g, '').trim() ?? '';
   return text.length === 0 && !root.querySelector('img, table');
 }

@@ -4,6 +4,7 @@ import { HistoryService } from './history.service';
 import {
   BLOCK_SELECTOR,
   BLOCK_TAGS,
+  INLINE_MARK_ALIASES,
   INLINE_MARK_TAGS,
   closestBlock,
   isElement,
@@ -76,14 +77,24 @@ export class CommandService {
   toggleMark(mark: InlineMark): void {
     const tag = INLINE_MARK_TAGS[mark];
     const range = this.selection.getRange();
-    if (!range || !this.selection.getRoot()) {
+    const root = this.selection.getRoot();
+    if (!range || !root) {
       return;
     }
 
     if (range.collapsed) {
-      // Insert an empty mark wrapper so the next typed characters are formatted
       this.history.beginCommand();
       this.selection.focusEditor();
+      // Already inside the mark: move the caret out of it so the next typed
+      // characters are unformatted. Wrapping again would only nest the mark and
+      // leave the button stuck on.
+      const enclosing = this.closestTag(range.startContainer, INLINE_MARK_ALIASES[mark], root);
+      if (enclosing) {
+        this.escapeInline(enclosing, range);
+        this.commit();
+        return;
+      }
+      // Insert an empty mark wrapper so the next typed characters are formatted
       const el = document.createElement(tag.toLowerCase());
       el.appendChild(document.createTextNode('\u200b'));
       range.insertNode(el);
@@ -96,7 +107,7 @@ export class CommandService {
     this.runCommand((r, root) => {
       this.applyPerBlock(r, root, (sub) => {
         if (active) {
-          this.unwrapMarkInRange(sub, tag);
+          this.unwrapMarkInRange(sub, INLINE_MARK_ALIASES[mark]);
         } else {
           this.wrapMarkInRange(sub, tag);
         }
@@ -579,13 +590,24 @@ export class CommandService {
 
   private applyInlineStyle(prop: string, value: string | null): void {
     const range = this.selection.getRange();
-    if (!range) {
+    const root = this.selection.getRoot();
+    if (!range || !root) {
       return;
     }
 
     if (range.collapsed) {
       this.history.beginCommand();
       this.selection.focusEditor();
+      // Clearing inside a styled run: an empty span would sit *inside* it and
+      // inherit the very style being cleared, so step out of the run instead.
+      const styled = !value ? this.closestStyled(range.startContainer, prop, root) : null;
+      if (styled) {
+        const rewrap = styled.cloneNode(false) as HTMLElement;
+        rewrap.style.removeProperty(prop);
+        this.escapeInline(styled, range, rewrap.getAttribute('style') ? rewrap : undefined);
+        this.commit();
+        return;
+      }
       const span = document.createElement('span');
       if (value) {
         span.style.setProperty(prop, value);
@@ -599,6 +621,10 @@ export class CommandService {
 
     this.runCommand((r, root) => {
       this.applyPerBlock(r, root, (sub) => {
+        if (!value) {
+          this.stripStyleInRange(sub, prop, root);
+          return;
+        }
         const contents = sub.extractContents();
         // Drop the property from nested spans so the new value wins
         for (const nested of Array.from(contents.querySelectorAll<HTMLElement>('span'))) {
@@ -608,13 +634,45 @@ export class CommandService {
           }
         }
         const span = document.createElement('span');
-        if (value) {
-          span.style.setProperty(prop, value);
-        }
+        span.style.setProperty(prop, value);
         span.appendChild(contents);
         sub.insertNode(span);
       });
     });
+  }
+
+  /**
+   * Remove an inline style from the selection. Ancestors that set it are split
+   * so text outside the selection keeps the style, and any other formatting they
+   * carry is re-applied to the selected part.
+   */
+  private stripStyleInRange(range: Range, prop: string, root: HTMLElement): void {
+    for (let depth = 0; depth < 10; depth++) {
+      const styled = this.closestStyled(range.startContainer, prop, root);
+      if (!styled) {
+        break;
+      }
+      const rewrap = styled.cloneNode(false) as HTMLElement;
+      rewrap.style.removeProperty(prop);
+      this.splitAroundRange(styled, range);
+      if (rewrap.tagName !== 'SPAN' || rewrap.getAttribute('style')) {
+        rewrap.appendChild(range.extractContents());
+        range.insertNode(rewrap);
+        range.selectNode(rewrap);
+      }
+    }
+
+    const contents = range.extractContents();
+    for (const nested of Array.from(contents.querySelectorAll<HTMLElement>('*'))) {
+      if (!nested.style?.getPropertyValue(prop)) {
+        continue;
+      }
+      nested.style.removeProperty(prop);
+      if (nested.tagName === 'SPAN' && !nested.getAttribute('style')) {
+        unwrapNode(nested);
+      }
+    }
+    range.insertNode(contents);
   }
 
   /**
@@ -669,31 +727,89 @@ export class CommandService {
     return wrapper;
   }
 
-  private unwrapMarkInRange(range: Range, tag: string): void {
+  private unwrapMarkInRange(range: Range, tags: string[]): void {
     const root = this.selection.getRoot();
     if (!root) {
       return;
     }
-    const tagName = tag.toUpperCase();
+    const selector = tags.map((tag) => tag.toLowerCase()).join(', ');
 
-    // Split an enclosing mark so text outside the selection keeps its formatting
-    const enclosing = this.closestTag(range.startContainer, tagName, root);
-    if (enclosing) {
+    // Split enclosing marks so text outside the selection keeps its formatting.
+    // Nested wrappers (`<b><strong>`) need one pass each.
+    for (let depth = 0; depth < 10; depth++) {
+      const enclosing = this.closestTag(range.startContainer, tags, root);
+      if (!enclosing) {
+        break;
+      }
       this.splitAroundRange(enclosing, range);
     }
 
     const contents = range.extractContents();
-    for (const el of Array.from(contents.querySelectorAll<HTMLElement>(tag.toLowerCase()))) {
+    for (const el of Array.from(contents.querySelectorAll<HTMLElement>(selector))) {
       unwrapNode(el);
     }
     range.insertNode(contents);
 
     // Remove wrappers that became empty after splitting
-    for (const el of Array.from(root.querySelectorAll<HTMLElement>(tag.toLowerCase()))) {
-      if (!el.textContent && !el.querySelector('img, br')) {
+    for (const el of Array.from(root.querySelectorAll<HTMLElement>(selector))) {
+      if (!this.hasContent(el)) {
         el.remove();
       }
     }
+  }
+
+  /**
+   * Move a collapsed caret out of `element`, splitting it in two so the text on
+   * either side keeps its formatting. Inline wrappers between the caret and
+   * `element` are recreated around the caret, so escaping bold inside
+   * `<strong><em>` leaves italic switched on.
+   */
+  private escapeInline(element: HTMLElement, range: Range, rewrap?: HTMLElement): void {
+    const parent = element.parentNode;
+    if (!parent) {
+      return;
+    }
+
+    const inner: HTMLElement[] = [];
+    let current = this.elementAt(range.startContainer);
+    while (current && current !== element && element.contains(current)) {
+      inner.push(current);
+      current = current.parentElement;
+    }
+
+    const after = range.cloneRange();
+    after.selectNodeContents(element);
+    try {
+      after.setStart(range.startContainer, range.startOffset);
+    } catch {
+      return;
+    }
+    const tail = after.extractContents();
+
+    const caret = document.createTextNode('​');
+    let marker: Node = caret;
+    for (const wrapper of [...inner, ...(rewrap ? [rewrap] : [])]) {
+      const clone = wrapper.cloneNode(false) as HTMLElement;
+      clone.appendChild(marker);
+      marker = clone;
+    }
+
+    parent.insertBefore(marker, element.nextSibling);
+    if (tail.textContent || tail.querySelector('img')) {
+      const clone = element.cloneNode(false) as HTMLElement;
+      clone.appendChild(tail);
+      parent.insertBefore(clone, marker.nextSibling);
+    }
+    // The caret was at the very start, so nothing is left inside the mark
+    if (!this.hasContent(element)) {
+      element.remove();
+    }
+    this.collapseInside(caret, 1);
+  }
+
+  /** True when an element holds something other than caret placeholders. */
+  private hasContent(el: HTMLElement): boolean {
+    return !!el.textContent?.replace(/​/g, '') || !!el.querySelector('img, br');
   }
 
   /**
@@ -792,10 +908,25 @@ export class CommandService {
         : null;
   }
 
-  private closestTag(node: Node, tagName: string, root: HTMLElement): HTMLElement | null {
+  private closestTag(node: Node, tags: string[], root: HTMLElement): HTMLElement | null {
     let current = this.elementAt(node);
     while (current && current !== root) {
-      if (current.tagName === tagName) {
+      if (tags.includes(current.tagName)) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return null;
+  }
+
+  /**
+   * Nearest inline ancestor that sets `prop` itself. Blocks are excluded: a
+   * paragraph is not a run of styled text and must never be split apart.
+   */
+  private closestStyled(node: Node, prop: string, root: HTMLElement): HTMLElement | null {
+    let current = this.elementAt(node);
+    while (current && current !== root && !BLOCK_TAGS.has(current.tagName)) {
+      if (current.style?.getPropertyValue(prop)) {
         return current;
       }
       current = current.parentElement;
