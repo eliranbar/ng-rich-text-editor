@@ -44,7 +44,10 @@ ngx-rte-toolbar {
 }
 
 .ngx-rte__content[dir='rtl']:empty::before,
-:host.ngx-rte--empty .ngx-rte__content[dir='rtl']::before {
+:host.ngx-rte--empty .ngx-rte__content[dir='rtl']::before,
+// An LTR editor whose only (empty) block was switched to RTL: the caret sits on
+// the right, so the placeholder belongs there too.
+:host.ngx-rte--empty .ngx-rte__content:has(> [dir='rtl'])::before {
   float: right;
 }
 

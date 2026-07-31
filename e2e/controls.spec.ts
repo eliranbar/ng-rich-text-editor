@@ -59,6 +59,15 @@ function html(page: Page) {
   return page.locator(OUTPUT);
 }
 
+/** Rendered writing direction of each top-level block in the editor. */
+function blockDirections(page: Page): Promise<string[]> {
+  return page
+    .locator(EDITOR)
+    .evaluate((editor) =>
+      Array.from(editor.children).map((child) => getComputedStyle(child).direction),
+    );
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.locator(EDITOR)).toBeVisible();
@@ -213,6 +222,25 @@ test.describe('direction', () => {
     await page.getByRole('button', { name: 'Left to right' }).click();
     await expect(html(page)).toContainText('dir="ltr"');
     await expect(html(page)).not.toContainText('dir="rtl"');
+  });
+
+  test('flips every selected block, both ways', async ({ page }) => {
+    await page.locator(EDITOR).click();
+    await selectAll(page);
+    await page.getByRole('button', { name: 'Right to left' }).click();
+    await expect.poll(() => blockDirections(page)).toEqual(['rtl', 'rtl', 'rtl']);
+
+    await selectAll(page);
+    await page.getByRole('button', { name: 'Left to right' }).click();
+    await expect.poll(() => blockDirections(page)).toEqual(['ltr', 'ltr', 'ltr']);
+  });
+
+  test('keeps the direction picked on an empty editor', async ({ page }) => {
+    await typeFresh(page, 'x');
+    await page.keyboard.press('Backspace');
+    await page.getByRole('button', { name: 'Right to left' }).click();
+    await page.keyboard.type('שלום');
+    await expect(html(page)).toContainText('dir="rtl"');
   });
 });
 

@@ -148,25 +148,136 @@ export class CommandService {
   }
 
   /**
-   * Set writing direction on the current block (and list container when inside a list).
-   * Uses the HTML `dir` attribute so Hebrew/Arabic layout and caret behavior are correct.
+   * Set writing direction on every block the selection touches (list items flip
+   * their whole list, so the bullets move with the text). Uses the HTML `dir`
+   * attribute so Hebrew/Arabic layout and caret behavior are correct.
    */
   setDirection(direction: DirectionType): void {
+    // Pressing the toolbar before the editor ever held the caret leaves no range
+    // to act on, and the click would do nothing at all.
+    if (!this.selection.getRange()) {
+      this.selection.focusEditor();
+      this.selection.placeCaretAtEnd();
+    }
     this.runCommand((range, root) => {
-      let block = closestBlock(range.startContainer, root);
-      if (!block) {
-        return;
+      for (const block of this.directionTargets(range, root)) {
+        block.setAttribute('dir', direction);
+        block.style.direction = direction;
+        // A nested `dir` — from an earlier per-item toggle or from pasted
+        // content — beats the one just set, so the block would keep rendering
+        // the old direction. Clearing it makes toggling back and forth stick.
+        this.clearNestedDirection(block);
       }
-      if (block.tagName === 'LI') {
-        const list = block.parentElement;
-        if (list && (list.tagName === 'UL' || list.tagName === 'OL')) {
-          list.setAttribute('dir', direction);
-          block = list;
-        }
-      }
-      block.setAttribute('dir', direction);
-      block.style.direction = direction;
     });
+  }
+
+  /**
+   * Blocks the direction toggle applies to, outermost first and de-duplicated.
+   * List items resolve to their `ul`/`ol` so a list flips as one unit.
+   */
+  private directionTargets(range: Range, root: HTMLElement): HTMLElement[] {
+    let blocks: HTMLElement[] = [];
+    if (!range.collapsed) {
+      blocks = Array.from(root.querySelectorAll<HTMLElement>(BLOCK_SELECTOR)).filter(
+        // Containers such as `ul` flip through the items they hold
+        (block) => !block.querySelector(BLOCK_SELECTOR) && this.covers(range, block),
+      );
+    }
+    if (blocks.length === 0) {
+      const caretBlock = this.caretBlock(range, root);
+      blocks = caretBlock ? [caretBlock] : [];
+    }
+
+    const targets: HTMLElement[] = [];
+    for (const block of blocks) {
+      const target = this.directionScope(block);
+      // A promoted list can be reached from several selected items, and an
+      // outer target already covers anything nested inside it.
+      if (!targets.some((seen) => seen === target || seen.contains(target))) {
+        targets.push(target);
+      }
+    }
+    return targets;
+  }
+
+  /**
+   * Block holding the caret. An emptied editor parks the caret on the root
+   * itself, where there is no block ancestor to find — so fall back to the
+   * top-level element around it, then to the child it sits next to.
+   */
+  private caretBlock(range: Range, root: HTMLElement): HTMLElement | null {
+    const block = closestBlock(range.startContainer, root);
+    if (block) {
+      return block;
+    }
+    const top = this.topLevelBlock(range.startContainer, root);
+    if (top) {
+      return top;
+    }
+    if (range.startContainer !== root) {
+      return null;
+    }
+    const children = Array.from(root.childNodes);
+    const at = children[range.startOffset] ?? children[range.startOffset - 1] ?? null;
+    return isElement(at) ? at : null;
+  }
+
+  /** The element a block's direction lives on: the list for items, else the block. */
+  private directionScope(block: HTMLElement): HTMLElement {
+    if (block.tagName === 'LI') {
+      const list = block.parentElement;
+      if (list && (list.tagName === 'UL' || list.tagName === 'OL')) {
+        return list;
+      }
+    }
+    return block;
+  }
+
+  /** Remove direction set on anything inside `block` so the block's own wins. */
+  private clearNestedDirection(block: HTMLElement): void {
+    for (const nested of Array.from(
+      block.querySelectorAll<HTMLElement>('[dir], [style*="direction"]'),
+    )) {
+      nested.removeAttribute('dir');
+      nested.style.removeProperty('direction');
+      if (nested.getAttribute('style') === '') {
+        nested.removeAttribute('style');
+      }
+    }
+  }
+
+  /**
+   * Whether `range` selects part of `block`. Empty blocks contribute no
+   * characters to compare against, so touching them at all counts — otherwise a
+   * blank line inside a multi-block selection would keep the old direction and
+   * flip back the moment the user typed in it.
+   */
+  private covers(range: Range, block: HTMLElement): boolean {
+    let intersects: boolean;
+    try {
+      intersects = range.intersectsNode(block);
+    } catch {
+      return false;
+    }
+    if (!intersects) {
+      return false;
+    }
+    if (!block.textContent?.replace(/​/g, '').trim()) {
+      return true;
+    }
+    const sub = document.createRange();
+    sub.selectNodeContents(block);
+    try {
+      if (range.comparePoint(sub.startContainer, sub.startOffset) < 0) {
+        sub.setStart(range.startContainer, range.startOffset);
+      }
+      if (range.comparePoint(sub.endContainer, sub.endOffset) > 0) {
+        sub.setEnd(range.endContainer, range.endOffset);
+      }
+    } catch {
+      return false;
+    }
+    return !sub.collapsed;
   }
 
   /** Apply direction to the whole editor root (document-level RTL/LTR). */

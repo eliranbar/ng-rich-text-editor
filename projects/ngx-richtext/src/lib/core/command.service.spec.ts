@@ -192,6 +192,67 @@ describe('CommandService toggling', () => {
     });
   });
 
+  describe('direction', () => {
+    /** Direction actually in force on a block: `dir` first, inline style second. */
+    function dirOf(selector: string): string | null {
+      const el = root.querySelector<HTMLElement>(selector);
+      return el?.getAttribute('dir') ?? el?.style.direction ?? null;
+    }
+
+    it('flips a paragraph back and forth', () => {
+      root.innerHTML = '<p>hello</p>';
+      select(2);
+
+      commands.setDirection('rtl');
+      expect(dirOf('p')).toBe('rtl');
+      expect(state().direction).toBe('rtl');
+
+      commands.setDirection('ltr');
+      expect(dirOf('p')).toBe('ltr');
+      expect(state().direction).toBe('ltr');
+    });
+
+    it('flips every block a multi-block selection touches', () => {
+      root.innerHTML = '<p>one</p><ul><li>two</li><li>three</li></ul><p>four</p>';
+      select(0, 15);
+
+      commands.setDirection('rtl');
+      expect(dirOf('p')).toBe('rtl');
+      expect(dirOf('ul')).toBe('rtl');
+      expect(dirOf('p:last-of-type')).toBe('rtl');
+
+      select(0, 15);
+      commands.setDirection('ltr');
+      expect(dirOf('p')).toBe('ltr');
+      expect(dirOf('ul')).toBe('ltr');
+      expect(dirOf('p:last-of-type')).toBe('ltr');
+    });
+
+    it('clears a nested direction so the new one takes effect', () => {
+      root.innerHTML = '<p dir="rtl"><span dir="rtl">abcd</span></p>';
+      select(1);
+
+      commands.setDirection('ltr');
+
+      expect(dirOf('p')).toBe('ltr');
+      expect(root.querySelector('span')?.getAttribute('dir')).toBe(null);
+    });
+
+    it('keeps the direction chosen while the editor is empty', () => {
+      root.innerHTML = '<p><br></p>';
+      const range = document.createRange();
+      range.setStart(root.firstElementChild!, 0);
+      range.collapse(true);
+      const sel = document.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+
+      commands.setDirection('rtl');
+
+      expect(dirOf('p')).toBe('rtl');
+    });
+  });
+
   describe('colors', () => {
     it('clears the color of a selection inside a colored run', () => {
       root.innerHTML = '<p><span style="color: red">abcd</span></p>';

@@ -163,9 +163,29 @@ export function getComputedTextAlign(el: HTMLElement): string {
 }
 
 export function normalizeEmptyEditor(root: HTMLElement): void {
-  if (!root.textContent?.trim() && !root.querySelector('img, table')) {
-    root.innerHTML = '<p><br></p>';
+  if (root.textContent?.trim() || root.querySelector('img, table')) {
+    return;
   }
+  const first = root.firstElementChild as HTMLElement | null;
+  if (root.childNodes.length === 1 && isEmptyParagraph(first)) {
+    // Already the shape we normalize to. Rewriting it would drop attributes such
+    // as `dir` — set while the editor was empty — and detach the caret.
+    return;
+  }
+  const paragraph = document.createElement('p');
+  paragraph.appendChild(document.createElement('br'));
+  // Carry the writing direction over, so choosing RTL on an empty editor
+  // survives the rebuild and the next typed characters run the right way.
+  const dir = first?.getAttribute('dir');
+  if (dir === 'rtl' || dir === 'ltr') {
+    paragraph.setAttribute('dir', dir);
+    paragraph.style.direction = dir;
+  }
+  root.replaceChildren(paragraph);
+}
+
+function isEmptyParagraph(el: HTMLElement | null): boolean {
+  return el?.tagName === 'P' && el.childNodes.length === 1 && el.firstChild?.nodeName === 'BR';
 }
 
 export function isEditorEmpty(root: HTMLElement): boolean {
