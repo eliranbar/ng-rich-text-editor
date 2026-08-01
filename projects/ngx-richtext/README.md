@@ -2,6 +2,8 @@
 
 Professional Angular rich text editor — one tag, toolbar included, HTML value format, host-delegated image uploads, and free/premium feature tiers unlocked by an offline signed license key.
 
+**[Live demo → https://www.ebdev-design.com](https://www.ebdev-design.com)**
+
 ## Install
 
 ```bash
