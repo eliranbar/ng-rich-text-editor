@@ -1,7 +1,14 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Locator, Page } from '@playwright/test';
 
-const EDITOR = '.ngx-rte__content';
-const OUTPUT = '.demo__preview pre';
+// The demo page hosts several editors; these tests drive the value-model one.
+const DEMO = '#value-demo';
+const EDITOR = `${DEMO} .ngx-rte__content`;
+const OUTPUT = `${DEMO} .demo__preview pre`;
+
+/** Root of the editor under test, so controls never match a sibling editor. */
+function demo(page: Page): Locator {
+  return page.locator(DEMO);
+}
 
 /** Clear the editor and type fresh text, leaving the caret in the editor. */
 async function typeFresh(page: Page, text: string): Promise<void> {
@@ -83,23 +90,23 @@ test.describe('inline marks', () => {
     test(`${name} wraps selection in <${tag}>`, async ({ page }) => {
       await typeFresh(page, 'mark me');
       await selectAll(page);
-      await page.getByRole('button', { name }).click();
+      await demo(page).getByRole('button', { name }).click();
       await expect(html(page)).toContainText(`<${tag}>mark me</${tag}>`);
     });
 
     test(`${name} unwraps when toggled twice`, async ({ page }) => {
       await typeFresh(page, 'toggle me');
       await selectAll(page);
-      await page.getByRole('button', { name }).click();
+      await demo(page).getByRole('button', { name }).click();
       await expect(html(page)).toContainText(`<${tag}>`);
       await selectAll(page);
-      await page.getByRole('button', { name }).click();
+      await demo(page).getByRole('button', { name }).click();
       await expect(html(page)).not.toContainText(`<${tag}>`);
       await expect(html(page)).toContainText('toggle me');
     });
 
     test(`${name} switches back off for text typed after it`, async ({ page }) => {
-      const button = page.getByRole('button', { name });
+      const button = demo(page).getByRole('button', { name });
 
       await typeFresh(page, 'plain ');
       await button.click();
@@ -115,7 +122,7 @@ test.describe('inline marks', () => {
     });
 
     test(`${name} button clears while the caret sits inside the mark`, async ({ page }) => {
-      const button = page.getByRole('button', { name });
+      const button = demo(page).getByRole('button', { name });
 
       await typeFresh(page, 'abcdef');
       await selectAll(page);
@@ -137,7 +144,7 @@ test.describe('inline marks keep valid structure', () => {
   test('bold stays inside the paragraph', async ({ page }) => {
     await typeFresh(page, 'inside p');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<p><strong>inside p</strong></p>');
     await expect(html(page)).not.toContainText('<strong><p>');
   });
@@ -147,7 +154,7 @@ test.describe('inline marks keep valid structure', () => {
     await page.keyboard.press('Enter');
     await page.keyboard.type('second');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<p><strong>first</strong></p>');
     await expect(html(page)).toContainText('<p><strong>second</strong></p>');
   });
@@ -155,18 +162,18 @@ test.describe('inline marks keep valid structure', () => {
   test('bold on part of a word leaves the rest unformatted', async ({ page }) => {
     await typeFresh(page, 'abcdef');
     await selectTextRange(page, 2, 4);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('ab<strong>cd</strong>ef');
   });
 
   test('unbolding part of a bold run keeps the rest bold', async ({ page }) => {
     await typeFresh(page, 'abcdef');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<strong>abcdef</strong>');
 
     await selectTextRange(page, 2, 4);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<strong>ab</strong>cd<strong>ef</strong>');
   });
 });
@@ -180,16 +187,16 @@ test.describe('block styles', () => {
   ]) {
     test(`applies ${label} as <${tag}>`, async ({ page }) => {
       await typeFresh(page, 'a block');
-      await page.getByLabel('Paragraph style').selectOption({ label });
+      await demo(page).getByLabel('Paragraph style').selectOption({ label });
       await expect(html(page)).toContainText(`<${tag}>a block</${tag}>`);
     });
   }
 
   test('returns a heading back to paragraph', async ({ page }) => {
     await typeFresh(page, 'back to p');
-    await page.getByLabel('Paragraph style').selectOption({ label: 'Heading 1' });
+    await demo(page).getByLabel('Paragraph style').selectOption({ label: 'Heading 1' });
     await expect(html(page)).toContainText('<h1>');
-    await page.getByLabel('Paragraph style').selectOption({ label: 'Paragraph' });
+    await demo(page).getByLabel('Paragraph style').selectOption({ label: 'Paragraph' });
     await expect(html(page)).toContainText('<p>back to p</p>');
   });
 });
@@ -202,7 +209,7 @@ test.describe('alignment', () => {
   ]) {
     test(`aligns ${label}`, async ({ page }) => {
       await typeFresh(page, 'align me');
-      await page.getByLabel('Text alignment').selectOption({ label });
+      await demo(page).getByLabel('Text alignment').selectOption({ label });
       await expect(html(page)).toContainText(`text-align: ${css}`);
     });
   }
@@ -211,15 +218,15 @@ test.describe('alignment', () => {
 test.describe('direction', () => {
   test('switches to RTL', async ({ page }) => {
     await typeFresh(page, 'שלום עולם');
-    await page.getByRole('button', { name: 'Right to left' }).click();
+    await demo(page).getByRole('button', { name: 'Right to left' }).click();
     await expect(html(page)).toContainText('dir="rtl"');
   });
 
   test('switches back to LTR', async ({ page }) => {
     await typeFresh(page, 'hello');
-    await page.getByRole('button', { name: 'Right to left' }).click();
+    await demo(page).getByRole('button', { name: 'Right to left' }).click();
     await expect(html(page)).toContainText('dir="rtl"');
-    await page.getByRole('button', { name: 'Left to right' }).click();
+    await demo(page).getByRole('button', { name: 'Left to right' }).click();
     await expect(html(page)).toContainText('dir="ltr"');
     await expect(html(page)).not.toContainText('dir="rtl"');
   });
@@ -227,18 +234,18 @@ test.describe('direction', () => {
   test('flips every selected block, both ways', async ({ page }) => {
     await page.locator(EDITOR).click();
     await selectAll(page);
-    await page.getByRole('button', { name: 'Right to left' }).click();
+    await demo(page).getByRole('button', { name: 'Right to left' }).click();
     await expect.poll(() => blockDirections(page)).toEqual(['rtl', 'rtl', 'rtl']);
 
     await selectAll(page);
-    await page.getByRole('button', { name: 'Left to right' }).click();
+    await demo(page).getByRole('button', { name: 'Left to right' }).click();
     await expect.poll(() => blockDirections(page)).toEqual(['ltr', 'ltr', 'ltr']);
   });
 
   test('keeps the direction picked on an empty editor', async ({ page }) => {
     await typeFresh(page, 'x');
     await page.keyboard.press('Backspace');
-    await page.getByRole('button', { name: 'Right to left' }).click();
+    await demo(page).getByRole('button', { name: 'Right to left' }).click();
     await page.keyboard.type('שלום');
     await expect(html(page)).toContainText('dir="rtl"');
   });
@@ -247,29 +254,29 @@ test.describe('direction', () => {
 test.describe('lists', () => {
   test('creates a bullet list', async ({ page }) => {
     await typeFresh(page, 'item');
-    await page.getByRole('button', { name: 'Bullet list' }).click();
+    await demo(page).getByRole('button', { name: 'Bullet list' }).click();
     await expect(html(page)).toContainText('<ul><li>item</li></ul>');
   });
 
   test('creates a numbered list', async ({ page }) => {
     await typeFresh(page, 'item');
-    await page.getByRole('button', { name: 'Numbered list' }).click();
+    await demo(page).getByRole('button', { name: 'Numbered list' }).click();
     await expect(html(page)).toContainText('<ol><li>item</li></ol>');
   });
 
   test('converts bullet list to numbered list', async ({ page }) => {
     await typeFresh(page, 'item');
-    await page.getByRole('button', { name: 'Bullet list' }).click();
-    await page.getByRole('button', { name: 'Numbered list' }).click();
+    await demo(page).getByRole('button', { name: 'Bullet list' }).click();
+    await demo(page).getByRole('button', { name: 'Numbered list' }).click();
     await expect(html(page)).toContainText('<ol>');
     await expect(html(page)).not.toContainText('<ul>');
   });
 
   test('removes a list when toggled off', async ({ page }) => {
     await typeFresh(page, 'item');
-    await page.getByRole('button', { name: 'Bullet list' }).click();
+    await demo(page).getByRole('button', { name: 'Bullet list' }).click();
     await expect(html(page)).toContainText('<ul>');
-    await page.getByRole('button', { name: 'Bullet list' }).click();
+    await demo(page).getByRole('button', { name: 'Bullet list' }).click();
     await expect(html(page)).not.toContainText('<ul>');
     await expect(html(page)).toContainText('item');
   });
@@ -279,8 +286,8 @@ test.describe('colors', () => {
   test('applies a text color', async ({ page }) => {
     await typeFresh(page, 'colored');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Text color', exact: true }).click();
-    await page.getByRole('button', { name: 'Text color #e11d48' }).click();
+    await demo(page).getByRole('button', { name: 'Text color', exact: true }).click();
+    await demo(page).getByRole('button', { name: 'Text color #e11d48' }).click();
     await expect(html(page)).toContainText('color: rgb(225, 29, 72)');
     await expect(html(page)).toContainText('colored');
   });
@@ -288,8 +295,8 @@ test.describe('colors', () => {
   test('applies a highlight color', async ({ page }) => {
     await typeFresh(page, 'highlighted');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Highlight color', exact: true }).click();
-    await page.getByRole('button', { name: 'Highlight color #2563eb' }).click();
+    await demo(page).getByRole('button', { name: 'Highlight color', exact: true }).click();
+    await demo(page).getByRole('button', { name: 'Highlight color #2563eb' }).click();
     await expect(html(page)).toContainText('background-color: rgb(37, 99, 235)');
     await expect(html(page)).toContainText('highlighted');
   });
@@ -299,9 +306,9 @@ test.describe('link', () => {
   test('adds a link to the selected text', async ({ page }) => {
     await typeFresh(page, 'click here');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Insert link' }).click();
-    await page.getByLabel('Link URL').fill('https://example.com');
-    await page.getByRole('button', { name: 'Apply link' }).click();
+    await demo(page).getByRole('button', { name: 'Insert link' }).click();
+    await demo(page).getByLabel('Link URL').fill('https://example.com');
+    await demo(page).getByRole('button', { name: 'Apply link' }).click();
     await expect(html(page)).toContainText('href="https://example.com"');
     await expect(html(page)).toContainText('click here');
   });
@@ -309,15 +316,15 @@ test.describe('link', () => {
   test('edits an existing link', async ({ page }) => {
     await typeFresh(page, 'link text');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Insert link' }).click();
-    await page.getByLabel('Link URL').fill('https://one.example');
-    await page.getByRole('button', { name: 'Apply link' }).click();
+    await demo(page).getByRole('button', { name: 'Insert link' }).click();
+    await demo(page).getByLabel('Link URL').fill('https://one.example');
+    await demo(page).getByRole('button', { name: 'Apply link' }).click();
     await expect(html(page)).toContainText('https://one.example');
 
     await selectAll(page);
-    await page.getByRole('button', { name: 'Insert link' }).click();
-    await page.getByLabel('Link URL').fill('https://two.example');
-    await page.getByRole('button', { name: 'Apply link' }).click();
+    await demo(page).getByRole('button', { name: 'Insert link' }).click();
+    await demo(page).getByLabel('Link URL').fill('https://two.example');
+    await demo(page).getByRole('button', { name: 'Apply link' }).click();
     await expect(html(page)).toContainText('https://two.example');
     await expect(html(page)).not.toContainText('https://one.example');
   });
@@ -325,14 +332,14 @@ test.describe('link', () => {
   test('removes a link', async ({ page }) => {
     await typeFresh(page, 'unlink me');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Insert link' }).click();
-    await page.getByLabel('Link URL').fill('https://example.com');
-    await page.getByRole('button', { name: 'Apply link' }).click();
+    await demo(page).getByRole('button', { name: 'Insert link' }).click();
+    await demo(page).getByLabel('Link URL').fill('https://example.com');
+    await demo(page).getByRole('button', { name: 'Apply link' }).click();
     await expect(html(page)).toContainText('<a');
 
     await selectAll(page);
-    await page.getByRole('button', { name: 'Insert link' }).click();
-    await page.getByRole('button', { name: 'Remove link' }).click();
+    await demo(page).getByRole('button', { name: 'Insert link' }).click();
+    await demo(page).getByRole('button', { name: 'Remove link' }).click();
     await expect(html(page)).not.toContainText('<a');
     await expect(html(page)).toContainText('unlink me');
   });
@@ -341,8 +348,8 @@ test.describe('link', () => {
 test.describe('image', () => {
   test('uploads and inserts an image', async ({ page }) => {
     await typeFresh(page, 'with image');
-    await page.getByRole('button', { name: 'Insert image' }).click();
-    await page.locator('input[type=file]').setInputFiles({
+    await demo(page).getByRole('button', { name: 'Insert image' }).click();
+    await demo(page).locator('input[type=file]').setInputFiles({
       name: 'pixel.png',
       mimeType: 'image/png',
       buffer: Buffer.from(
@@ -365,16 +372,16 @@ test.describe('table', () => {
     columns: number,
     header = false,
   ): Promise<void> {
-    await page.getByRole('button', { name: 'Insert table' }).click();
-    await page.getByLabel('Table rows').fill(String(rows));
-    await page.getByLabel('Table columns').fill(String(columns));
-    const headerBox = page.getByLabel('Header row');
+    await demo(page).getByRole('button', { name: 'Insert table' }).click();
+    await demo(page).getByLabel('Table rows').fill(String(rows));
+    await demo(page).getByLabel('Table columns').fill(String(columns));
+    const headerBox = demo(page).getByLabel('Header row');
     if (header) {
       await headerBox.check();
     } else {
       await headerBox.uncheck();
     }
-    await page.getByRole('button', { name: 'Insert table of the chosen size' }).click();
+    await demo(page).getByRole('button', { name: 'Insert table of the chosen size' }).click();
   }
 
   function count(output: string, tag: string): number {
@@ -400,11 +407,11 @@ test.describe('table', () => {
 
   test('picks a size from the hover grid', async ({ page }) => {
     await typeFresh(page, 'grid pick');
-    await page.getByRole('button', { name: 'Insert table' }).click();
-    await page.getByLabel('Header row').uncheck();
-    await page.getByRole('button', { name: 'Insert 2 by 4 table' }).hover();
-    await expect(page.locator('.ngx-rte-toolbar__grid-label')).toHaveText('2 × 4');
-    await page.getByRole('button', { name: 'Insert 2 by 4 table' }).click();
+    await demo(page).getByRole('button', { name: 'Insert table' }).click();
+    await demo(page).getByLabel('Header row').uncheck();
+    await demo(page).getByRole('button', { name: 'Insert 2 by 4 table' }).hover();
+    await expect(demo(page).locator('.ngx-rte-toolbar__grid-label')).toHaveText('2 × 4');
+    await demo(page).getByRole('button', { name: 'Insert 2 by 4 table' }).click();
 
     await expectShape(page, { tr: 2, td: 8 });
   });
@@ -462,8 +469,8 @@ test.describe('table', () => {
     await insertTable(page, 2, 2);
     await page.locator(`${EDITOR} td`).first().click();
 
-    await page.getByRole('button', { name: 'Insert row below' }).click();
-    await page.getByRole('button', { name: 'Insert row above' }).click();
+    await demo(page).getByRole('button', { name: 'Insert row below' }).click();
+    await demo(page).getByRole('button', { name: 'Insert row above' }).click();
 
     await expectShape(page, { tr: 4, td: 8 });
   });
@@ -473,8 +480,8 @@ test.describe('table', () => {
     await insertTable(page, 2, 2);
     await page.locator(`${EDITOR} td`).first().click();
 
-    await page.getByRole('button', { name: 'Insert column right' }).click();
-    await page.getByRole('button', { name: 'Insert column left' }).click();
+    await demo(page).getByRole('button', { name: 'Insert column right' }).click();
+    await demo(page).getByRole('button', { name: 'Insert column left' }).click();
 
     await expectShape(page, { tr: 2, td: 8 });
   });
@@ -485,8 +492,8 @@ test.describe('table', () => {
     await page.locator(`${EDITOR} td`).first().click();
 
     for (let i = 0; i < 5; i++) {
-      await page.getByRole('button', { name: 'Insert row below' }).click();
-      await page.getByRole('button', { name: 'Insert column right' }).click();
+      await demo(page).getByRole('button', { name: 'Insert row below' }).click();
+      await demo(page).getByRole('button', { name: 'Insert column right' }).click();
     }
 
     await expectShape(page, { tr: 7, td: 49 });
@@ -496,7 +503,7 @@ test.describe('table', () => {
     await typeFresh(page, 'header grow');
     await insertTable(page, 3, 2, true);
     await page.locator(`${EDITOR} td`).first().click();
-    await page.getByRole('button', { name: 'Insert column right' }).click();
+    await demo(page).getByRole('button', { name: 'Insert column right' }).click();
 
     await expectShape(page, { tr: 3, th: 3, td: 6 });
   });
@@ -506,10 +513,10 @@ test.describe('table', () => {
     await insertTable(page, 3, 3);
     await page.locator(`${EDITOR} td`).first().click();
 
-    await page.getByRole('button', { name: 'Delete row' }).click();
+    await demo(page).getByRole('button', { name: 'Delete row' }).click();
     await expectShape(page, { tr: 2, td: 6 });
 
-    await page.getByRole('button', { name: 'Delete column' }).click();
+    await demo(page).getByRole('button', { name: 'Delete column' }).click();
     await expectShape(page, { tr: 2, td: 4 });
   });
 
@@ -517,18 +524,18 @@ test.describe('table', () => {
     await typeFresh(page, 'gone');
     await insertTable(page, 3, 3);
     await page.locator(`${EDITOR} td`).first().click();
-    await page.getByRole('button', { name: 'Delete table' }).click();
+    await demo(page).getByRole('button', { name: 'Delete table' }).click();
     await expect(html(page)).not.toContainText('<table>');
     await expect(html(page)).toContainText('gone');
   });
 
   test('row and column controls only appear inside a table', async ({ page }) => {
     await typeFresh(page, 'outside');
-    await expect(page.getByRole('button', { name: 'Insert row above' })).toHaveCount(0);
+    await expect(demo(page).getByRole('button', { name: 'Insert row above' })).toHaveCount(0);
 
     await insertTable(page, 2, 2);
     await page.locator(`${EDITOR} td`).first().click();
-    await expect(page.getByRole('button', { name: 'Insert row above' })).toBeVisible();
+    await expect(demo(page).getByRole('button', { name: 'Insert row above' })).toBeVisible();
   });
 
   test('typing into cells keeps the table structure', async ({ page }) => {
@@ -549,7 +556,7 @@ test.describe('table', () => {
     await insertTable(page, 3, 3);
     await expect(html(page)).toContainText('<table>');
 
-    await page.getByRole('button', { name: 'Undo' }).click();
+    await demo(page).getByRole('button', { name: 'Undo' }).click();
     await expect(html(page)).not.toContainText('<table>');
     await expect(html(page)).toContainText('undo table');
   });
@@ -558,13 +565,13 @@ test.describe('table', () => {
 test.describe('source view', () => {
   test('shows HTML source and applies edits back', async ({ page }) => {
     await typeFresh(page, 'source test');
-    await page.getByRole('button', { name: 'HTML source' }).click();
-    const source = page.locator('.ngx-rte__source');
+    await demo(page).getByRole('button', { name: 'HTML source' }).click();
+    const source = demo(page).locator('.ngx-rte__source');
     await expect(source).toBeVisible();
     await expect(source).toHaveValue(/source test/);
 
     await source.fill('<p><strong>edited in source</strong></p>');
-    await page.getByRole('button', { name: 'HTML source' }).click();
+    await demo(page).getByRole('button', { name: 'HTML source' }).click();
     await expect(page.locator(EDITOR)).toBeVisible();
     await expect(html(page)).toContainText('<strong>edited in source</strong>');
   });
@@ -572,10 +579,10 @@ test.describe('source view', () => {
 
 test.describe('fullscreen', () => {
   test('toggles fullscreen class', async ({ page }) => {
-    const editorHost = page.locator('ngx-rte');
-    await page.getByRole('button', { name: 'Fullscreen' }).click();
+    const editorHost = demo(page).locator('ngx-rte');
+    await demo(page).getByRole('button', { name: 'Fullscreen' }).click();
     await expect(editorHost).toHaveClass(/ngx-rte--fullscreen/);
-    await page.getByRole('button', { name: 'Fullscreen' }).click();
+    await demo(page).getByRole('button', { name: 'Fullscreen' }).click();
     await expect(editorHost).not.toHaveClass(/ngx-rte--fullscreen/);
   });
 });
@@ -584,21 +591,21 @@ test.describe('clear formatting', () => {
   test('strips marks from the selection', async ({ page }) => {
     await typeFresh(page, 'formatted text');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<strong>');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Clear formatting' }).click();
+    await demo(page).getByRole('button', { name: 'Clear formatting' }).click();
     await expect(html(page)).not.toContainText('<strong>');
     await expect(html(page)).toContainText('<p>formatted text</p>');
   });
 
   test('keeps the block wrapper for a heading', async ({ page }) => {
     await typeFresh(page, 'heading text');
-    await page.getByLabel('Paragraph style').selectOption({ label: 'Heading 2' });
+    await demo(page).getByLabel('Paragraph style').selectOption({ label: 'Heading 2' });
     await selectAll(page);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await selectAll(page);
-    await page.getByRole('button', { name: 'Clear formatting' }).click();
+    await demo(page).getByRole('button', { name: 'Clear formatting' }).click();
     await expect(html(page)).toContainText('<h2>heading text</h2>');
   });
 });
@@ -607,14 +614,14 @@ test.describe('history', () => {
   test('undo reverts a command and redo re-applies it', async ({ page }) => {
     await typeFresh(page, 'undo target');
     await selectAll(page);
-    await page.getByRole('button', { name: 'Bold' }).click();
+    await demo(page).getByRole('button', { name: 'Bold' }).click();
     await expect(html(page)).toContainText('<strong>');
 
-    await page.getByRole('button', { name: 'Undo' }).click();
+    await demo(page).getByRole('button', { name: 'Undo' }).click();
     await expect(html(page)).not.toContainText('<strong>');
     await expect(html(page)).toContainText('undo target');
 
-    await page.getByRole('button', { name: 'Redo' }).click();
+    await demo(page).getByRole('button', { name: 'Redo' }).click();
     await expect(html(page)).toContainText('<strong>');
   });
 });
