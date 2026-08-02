@@ -55,7 +55,7 @@
         <div class="demo-window__dots" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
-        <span class="demo-window__title">Live editor</span>
+        <span class="demo-window__title">Live editor · [(value)]</span>
         <button type="button" class="btn btn--sm" (click)="dark.set(!dark())">
           {{ dark() ? 'Light' : 'Dark' }} mode
         </button>
@@ -70,17 +70,77 @@
         />
       </div>
       <div class="demo-window__footer">
-        <button
-          type="button"
-          class="btn btn--sm"
-          (click)="showHtml.set(!showHtml())"
-          [attr.aria-expanded]="showHtml()"
-        >
-          {{ showHtml() ? 'Hide' : 'Show' }} HTML output
-        </button>
+        <div class="demo-window__actions">
+          <button
+            type="button"
+            class="btn btn--sm"
+            (click)="showHtml.set(!showHtml())"
+            [attr.aria-expanded]="showHtml()"
+          >
+            {{ showHtml() ? 'Hide' : 'Show' }} HTML output
+          </button>
+        </div>
+        <p class="demo-window__status">Free · value model</p>
       </div>
       <div class="demo__preview" [hidden]="!showHtml()">
         <pre class="demo-window__html">{{ html() }}</pre>
+      </div>
+    </div>
+
+    <div class="demo-window demo-window--follow" id="forms-demo">
+      <div class="demo-window__chrome">
+        <div class="demo-window__dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="demo-window__title">FormControl</span>
+        <span class="badge badge--premium">Premium</span>
+      </div>
+      <div class="demo-window__body" [class.demo-window__body--dark]="dark()">
+        <ngx-rte
+          [theme]="dark() ? 'dark' : 'light'"
+          [formControl]="editorControl"
+          placeholder="Required field — clear me to see validation…"
+          minHeight="200px"
+          (imageUploadError)="onImageError($event)"
+        />
+      </div>
+      <div class="demo-window__footer">
+        <div class="demo-window__actions">
+          <button
+            type="button"
+            class="btn btn--sm"
+            (click)="showFormHtml.set(!showFormHtml())"
+            [attr.aria-expanded]="showFormHtml()"
+          >
+            {{ showFormHtml() ? 'Hide' : 'Show' }} HTML output
+          </button>
+          <button type="button" class="btn btn--sm" (click)="clearEditor()">Clear</button>
+          <button type="button" class="btn btn--sm" (click)="toggleDisabled()">
+            {{ editorControl.disabled ? 'Enable' : 'Disable' }}
+          </button>
+          <button type="button" class="btn btn--sm btn--primary-sm" (click)="submitDemo()">
+            Validate
+          </button>
+        </div>
+        <p
+          class="demo-window__status"
+          [class.demo-window__status--invalid]="
+            editorControl.invalid && (editorControl.touched || submitted())
+          "
+        >
+          @if (editorControl.disabled) {
+            Disabled
+          } @else if (editorControl.invalid && (editorControl.touched || submitted())) {
+            Required — add some content
+          } @else if (editorControl.valid) {
+            Valid FormControl
+          } @else {
+            Untouched
+          }
+        </p>
+      </div>
+      <div class="demo__preview" [hidden]="!showFormHtml()">
+        <pre class="demo-window__html">{{ editorControl.value }}</pre>
       </div>
     </div>
   </section>

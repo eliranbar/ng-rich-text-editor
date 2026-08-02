@@ -6,7 +6,7 @@ import { RTE_CONFIG } from '../config/tokens';
 import { RTE_FEATURES } from '../config/features';
 
 const DEMO_LICENSE =
-  'eyJwIjoiZXlKd2JHRnVJam9pY0hKbGJXbDFiU0lzSW1abFlYUjFjbVZ6SWpwYkluUmxlSFJEYjJ4dmNpSXNJbUpoWTJ0bmNtOTFibVJEYjJ4dmNpSXNJbWx0WVdkbFVtVnphWHBsSWl3aWRHRmliR1Z6SWl3aWMyOTFjbU5sVm1sbGR5SXNJbmR2Y21SRGIzVnVkQ0lzSW1aMWJHeHpZM0psWlc0aVhTd2laWGh3YVhKNUlqb2lNakE1T1MweE1pMHpNU0lzSW14cFkyVnVjMlZsSWpvaVpHVnRiMEJsZUdGdGNHeGxMbU52YlNKOSIsInMiOiJsVDVDamRLdkpHWU5jenBCOWVYc1R1bkErSGxZR09RRi95S3Fuc1hJbFhyWnFoSit0dDhkRnhOYUNNcGZtRkJVUUdUajRVM2RuQkd1NTk2N2U2bWpEdz09In0=';
+  'eyJwIjoiZXlKd2JHRnVJam9pY0hKbGJXbDFiU0lzSW1abFlYUjFjbVZ6SWpwYkluUmxlSFJEYjJ4dmNpSXNJbUpoWTJ0bmNtOTFibVJEYjJ4dmNpSXNJbWx0WVdkbFVtVnphWHBsSWl3aWRHRmliR1Z6SWl3aWMyOTFjbU5sVm1sbGR5SXNJbmR2Y21SRGIzVnVkQ0lzSW1aMWJHeHpZM0psWlc0aUxDSnlaV0ZqZEdsMlpVWnZjbTF6SWwwc0ltVjRjR2x5ZVNJNklqSXdPVGt0TVRJdE16RWlMQ0pzYVdObGJuTmxaU0k2SW1SbGJXOUFaWGhoYlhCc1pTNWpiMjBpZlE9PSIsInMiOiJaRk02MnljTUpTcDBqRXYveTNMSmNrUnRjQzg2WnNDdFFlQzM0bTFCL0NnUXZyTDlVaTRSTVQ0NzRKenZuTkRoelA0TW5ESGlEOStPOFZ5Z0t4eXVEUT09In0=';
 
 describe('LicenseService', () => {
   it('falls back to free tier without a key', async () => {
@@ -85,5 +85,7 @@ describe('LicenseService', () => {
     expect(gate.isEnabled(RTE_FEATURES.textColor)).toBe(true);
     expect(gate.isEnabled(RTE_FEATURES.tables)).toBe(true);
     expect(gate.isEnabled(RTE_FEATURES.bold)).toBe(true);
+    expect(gate.isEnabled(RTE_FEATURES.reactiveForms)).toBe(true);
+    expect(gate.isEnabled(RTE_FEATURES.sourceView)).toBe(true);
   });
 });

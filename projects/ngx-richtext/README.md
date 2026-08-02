@@ -45,7 +45,27 @@ Add `RteEditorComponent` to the component's `imports`, then drop in a single tag
 <ngx-rte [(value)]="html" placeholder="Type here…" />
 ```
 
-That's the whole editor — toolbar included.
+That's the whole editor — toolbar included. The `[(value)]` model is **free**.
+
+### Reactive forms (Premium)
+
+With a premium license (`reactiveForms`), bind a `FormControl` for validation, `disable()`, and touched/dirty status:
+
+```ts
+import { FormControl, Validators } from '@angular/forms';
+
+readonly body = new FormControl('', {
+  nonNullable: true,
+  validators: [Validators.required],
+});
+```
+
+```html
+<ngx-rte [formControl]="body" placeholder="Type here…" />
+<!-- or formControlName="body" inside a [formGroup] -->
+```
+
+An empty editor emits `''`, so `Validators.required` (and other string validators) behave as expected. Without a license, FormControl binding is ignored (with a console warning) and `[(value)]` keeps working.
 
 ### Toolbar on / off
 
@@ -72,8 +92,8 @@ To place the toolbar somewhere else, turn the built-in one off and bind
 <ngx-rte #editor showToolbar="false" [(value)]="html" />
 ```
 
-The editor's `value` model signal is a **sanitized HTML string**. The component also
-implements `ControlValueAccessor` for reactive-forms compatibility.
+The editor's `value` model signal is a **sanitized HTML string** (free).
+`ControlValueAccessor` / FormControl support is a **premium** feature (`reactiveForms`).
 
 ## RTL / Hebrew & Arabic
 
@@ -138,6 +158,8 @@ Without a handler, the toolbar still exposes the image button and emits `(imageR
 | Basic image insert | ✓ | ✓ |
 | Text & highlight colors | ✓ | ✓ |
 | Tables (picker, header row, row/column editing) | ✓ | ✓ |
+| `[(value)]` signal / two-way model | ✓ | ✓ |
+| FormControl / formControlName / ngModel | | ✓ |
 | HTML source view | | ✓ |
 | Word / char counter | | ✓ |
 | Fullscreen | | ✓ |
@@ -191,10 +213,10 @@ Use `[theme]="'dark'"` on `<ngx-rte>`, or add the class `ngx-rte-theme-dark` to 
 
 ### `<ngx-rte>`
 
-Models: `value`  
+Models: `value` (free)  
 Inputs: `placeholder`, `disabled`, `minHeight`, `dir`, `showToolbar` (default `true`), `toolbarItems`, `theme`  
 Outputs: `contentChange`, `focused`, `blurred`, `imageUploadError`, `imageRequest`, `selectionStateChange`  
-Implements `ControlValueAccessor`.
+Premium `reactiveForms`: `[formControl]` / `formControlName` / `ngModel`. Empty content is `''` so `Validators.required` works.
 
 ### `<ngx-rte-toolbar>`
 

@@ -159,6 +159,13 @@ ngx-rte-toolbar {
   pointer-events: none;
 }
 
+/* Angular Forms adds ng-* classes on the host when used with FormControl / ngModel. */
+:host.ng-invalid.ng-touched,
+:host.ng-invalid.ng-dirty {
+  border-color: var(--rte-invalid, #d92d20);
+  box-shadow: 0 0 0 1px var(--rte-invalid, #d92d20);
+}
+
 :host.ngx-rte--fullscreen {
   position: fixed;
   inset: 0;

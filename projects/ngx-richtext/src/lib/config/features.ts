@@ -20,6 +20,8 @@ export const RTE_FEATURES = {
   sourceView: 'sourceView',
   wordCount: 'wordCount',
   fullscreen: 'fullscreen',
+  /** Premium — FormControl / formControlName / ngModel ([(value)] stays free). */
+  reactiveForms: 'reactiveForms',
 } as const;
 
 export type RteFeatureId = (typeof RTE_FEATURES)[keyof typeof RTE_FEATURES];
@@ -47,6 +49,7 @@ export const PREMIUM_FEATURES: readonly RteFeatureId[] = [
   RTE_FEATURES.sourceView,
   RTE_FEATURES.wordCount,
   RTE_FEATURES.fullscreen,
+  RTE_FEATURES.reactiveForms,
 ];
 
 export const ALL_FEATURES: readonly RteFeatureId[] = [

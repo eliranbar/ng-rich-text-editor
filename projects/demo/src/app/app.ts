@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RteEditorComponent } from 'ngx-richtext';
 
 export interface FeatureCard {
@@ -15,23 +16,34 @@ export interface QuickStartStep {
   lang: string;
 }
 
+const DEMO_HTML = `<p>Welcome to <strong>ngx-richtext</strong> — a professional Angular rich text editor.</p>
+<ul>
+  <li>Format with the toolbar above</li>
+  <li>Paste from Word / Docs</li>
+  <li>Drop or insert images (uploaded by the host app)</li>
+</ul>
+<p dir="rtl">עברית: לחצו על <strong>RTL</strong> בסרגל הכלים כדי לערוך מימין לשמאל.</p>`;
+
 @Component({
   selector: 'app-root',
-  imports: [RteEditorComponent],
+  imports: [RteEditorComponent, ReactiveFormsModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   readonly dark = signal(false);
   readonly showHtml = signal(false);
+  readonly showFormHtml = signal(false);
+  readonly submitted = signal(false);
 
-  readonly html = signal(`<p>Welcome to <strong>ngx-richtext</strong> — a professional Angular rich text editor.</p>
-<ul>
-  <li>Format with the toolbar above</li>
-  <li>Paste from Word / Docs</li>
-  <li>Drop or insert images (uploaded by the host app)</li>
-</ul>
-<p dir="rtl">עברית: לחצו על <strong>RTL</strong> בסרגל הכלים כדי לערוך מימין לשמאל.</p>`);
+  /** Free tier: signal / two-way value model. */
+  readonly html = signal(DEMO_HTML);
+
+  /** Premium: FormControl with validation (demo license unlocks reactiveForms). */
+  readonly editorControl = new FormControl(DEMO_HTML, {
+    nonNullable: true,
+    validators: [Validators.required],
+  });
 
   readonly badges = ['Angular 21+', 'MIT License', 'Zero config', 'Forms-ready'];
 
@@ -73,7 +85,7 @@ export class App {
 export const appConfig = {
   providers: [
     provideRichTextEditor({
-      // licenseKey: '...',
+      // licenseKey: '...', // unlocks premium (incl. FormControl)
       imageUploadHandler: (file) => myApi.upload(file),
     }),
   ],
@@ -81,13 +93,14 @@ export const appConfig = {
     },
     {
       title: 'Drop in',
-      description: 'One tag. That\'s the whole editor — toolbar, surface, done.',
+      description:
+        '[(value)] is free. FormControl / validation is a premium feature.',
       lang: 'html',
-      code: `<ngx-rte [(value)]="html"
-         placeholder="Type here…" />
+      code: `<!-- Free -->
+<ngx-rte [(value)]="html" placeholder="Type here…" />
 
-<!-- surface only, no toolbar -->
-<ngx-rte showToolbar="false" [(value)]="html" />`,
+<!-- Premium (reactiveForms) -->
+<ngx-rte [formControl]="body" />`,
     },
   ];
 
@@ -128,6 +141,13 @@ export const appConfig = {
       description: 'Hover-grid picker, exact sizes, header rows, and post-insert edits.',
     },
     {
+      icon: '📋',
+      title: 'FormControl',
+      description:
+        'Wire [formControl] / formControlName with Validators, disable(), and touched state.',
+      premium: true,
+    },
+    {
       icon: '</>',
       title: 'HTML source',
       description: 'Inspect and tweak the sanitized markup when you need full control.',
@@ -161,6 +181,25 @@ export const appConfig = {
   onImageError(err: unknown): void {
     console.error('Image upload failed', err);
     alert('Image upload failed. See console for details.');
+  }
+
+  clearEditor(): void {
+    this.editorControl.setValue('');
+    this.editorControl.markAsTouched();
+    this.submitted.set(false);
+  }
+
+  toggleDisabled(): void {
+    if (this.editorControl.disabled) {
+      this.editorControl.enable();
+    } else {
+      this.editorControl.disable();
+    }
+  }
+
+  submitDemo(): void {
+    this.editorControl.markAsTouched();
+    this.submitted.set(true);
   }
 
   scrollTo(id: string): void {

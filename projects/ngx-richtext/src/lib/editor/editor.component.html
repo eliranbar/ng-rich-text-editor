@@ -6,13 +6,14 @@
   #editable
   class="ngx-rte__content"
   [class.ngx-rte__content--hidden]="sourceMode()"
-  [attr.contenteditable]="!disabled() && !sourceMode()"
+  [attr.contenteditable]="!isDisabled() && !sourceMode()"
   [attr.data-placeholder]="placeholder()"
   [attr.dir]="dir()"
   [style.minHeight]="minHeight()"
   [style.direction]="dir()"
   role="textbox"
   aria-multiline="true"
+  [attr.aria-disabled]="isDisabled() ? 'true' : null"
   (input)="onInput()"
   (focus)="onFocus()"
   (blur)="onBlur()"
@@ -28,6 +29,7 @@
     class="ngx-rte__source"
     [value]="sourceHtml()"
     (input)="onSourceInput($any($event.target).value)"
+    [disabled]="isDisabled()"
     [attr.aria-label]="'HTML source'"
   ></textarea>
 }

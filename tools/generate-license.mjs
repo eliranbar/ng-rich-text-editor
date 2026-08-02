@@ -66,7 +66,7 @@ if (existsSync(privPath)) {
 
 const features = (
   args.features ??
-  'textColor,backgroundColor,imageResize,tables,sourceView,wordCount,fullscreen'
+  'textColor,backgroundColor,imageResize,tables,sourceView,wordCount,fullscreen,reactiveForms'
 ).split(',');
 
 const payloadObj = {

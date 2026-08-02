@@ -5,6 +5,7 @@ import {
   OnDestroy,
   AfterViewInit,
   booleanAttribute,
+  computed,
   effect,
   forwardRef,
   inject,
@@ -17,6 +18,7 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { firstValueFrom, isObservable, Observable } from 'rxjs';
 import { RTE_CONFIG, ToolbarItem } from '../config/tokens';
+import { RTE_FEATURES } from '../config/features';
 import { RteToolbarComponent } from '../toolbar/toolbar.component';
 import { FeatureGateService } from '../license/feature-gate.service';
 import { SelectionService, SelectionState } from '../core/selection.service';
@@ -32,8 +34,11 @@ import { sanitizeHtml } from '../core/sanitizer';
  *
  * @example
  * ```html
+ * <!-- Free: signal / two-way model -->
  * <ngx-rte [(value)]="html" placeholder="Type here…" />
- * <ngx-rte showToolbar="false" [(value)]="html" />
+ *
+ * <!-- Premium: reactive forms -->
+ * <ngx-rte [formControl]="body" />
  * ```
  */
 @Component({
@@ -55,19 +60,21 @@ import { sanitizeHtml } from '../core/sanitizer';
   ],
   host: {
     class: 'ngx-rte',
-    '[class.ngx-rte--disabled]': 'disabled()',
+    '[class.ngx-rte--disabled]': 'isDisabled()',
     '[class.ngx-rte--empty]': 'empty()',
     '[class.ngx-rte--fullscreen]': 'fullscreen()',
     '[class.ngx-rte--fullscreen-wrapped]': 'fullscreen() && wrapped()',
     '[class.ngx-rte--toolbar]': 'showToolbar()',
     '[class.ngx-rte--dark]': 'theme() === "dark"',
+    '[attr.aria-disabled]': 'isDisabled() ? "true" : null',
   },
 })
 export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, OnDestroy {
   /** Signal-based editor value. Supports two-way binding with `[(value)]`. */
   readonly value = model('');
   readonly placeholder = input('Type here...');
-  readonly disabled = input(false);
+  /** Disable editing from the template. Also honors `FormControl.disable()`. */
+  readonly disabled = input(false, { transform: booleanAttribute });
   readonly minHeight = input('160px');
   /** Default writing direction for the editable surface (`ltr` or `rtl`). */
   readonly dir = input<'ltr' | 'rtl'>('ltr');
@@ -97,6 +104,9 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   readonly wordCount = signal(0);
   readonly charCount = signal(0);
 
+  /** Combined template + FormControl disabled state. */
+  readonly isDisabled = computed(() => this.disabled() || this.cvaDisabled());
+
   private readonly hostRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly config = inject(RTE_CONFIG);
   readonly features = inject(FeatureGateService, { optional: true });
@@ -111,7 +121,14 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   private writing = false;
   private pendingValue: string | null = null;
   private viewReady = false;
+  private featuresReady = false;
   private usingControlValueAccessor = false;
+  private cvaRequested = false;
+  private formControlWarned = false;
+  private pendingOnChange: ((value: string) => void) | null = null;
+  private pendingOnTouched: (() => void) | null = null;
+  private pendingDisabled: boolean | null = null;
+  private readonly cvaDisabled = signal(false);
 
   constructor() {
     effect(() => {
@@ -124,8 +141,11 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
 
   async ngAfterViewInit(): Promise<void> {
     await this.features?.init();
+    this.featuresReady = true;
+
     const root = this.editable()?.nativeElement;
     if (!root) {
+      this.applyControlValueAccessor();
       return;
     }
     this.selection.attach(root);
@@ -148,6 +168,9 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
       this.selectionStateChange.emit(state);
     };
     document.addEventListener('selectionchange', this.selectionListener);
+
+    // Unlock FormControl after the surface is ready so the initial sync is accurate.
+    this.applyControlValueAccessor();
   }
 
   ngOnDestroy(): void {
@@ -157,32 +180,81 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
   }
 
   writeValue(value: string | null): void {
+    const next = value ?? '';
     const root = this.editable()?.nativeElement;
     if (!root || !this.viewReady) {
-      this.pendingValue = value ?? '';
+      this.pendingValue = next;
+      this.syncValueModel(next);
       return;
     }
     this.writing = true;
-    this.serializer.deserialize(value ?? '', root);
+    this.serializer.deserialize(next, root);
     this.empty.set(isEditorEmpty(root));
     this.updateCounts();
+    // Keep the model in sync with what FormControl / writeValue applied
+    // (empty markup normalizes to '').
+    this.syncValueModel(this.serializer.serialize(root));
     this.writing = false;
   }
 
   registerOnChange(fn: (value: string) => void): void {
-    this.usingControlValueAccessor = true;
-    this.onChange = fn;
+    this.cvaRequested = true;
+    this.pendingOnChange = fn;
+    this.applyControlValueAccessor();
   }
 
   registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+    this.cvaRequested = true;
+    this.pendingOnTouched = fn;
+    this.applyControlValueAccessor();
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.editable()?.nativeElement.setAttribute(
-      'contenteditable',
-      isDisabled ? 'false' : 'true',
-    );
+    this.pendingDisabled = isDisabled;
+    if (this.usingControlValueAccessor) {
+      this.cvaDisabled.set(isDisabled);
+    }
+  }
+
+  /** Premium `reactiveForms` unlocks FormControl / ngModel; `[(value)]` is always free. */
+  private isReactiveFormsEnabled(): boolean {
+    return !!this.features?.isEnabled(RTE_FEATURES.reactiveForms);
+  }
+
+  private applyControlValueAccessor(): void {
+    if (!this.featuresReady || !this.cvaRequested) {
+      return;
+    }
+
+    if (!this.isReactiveFormsEnabled()) {
+      if (!this.formControlWarned) {
+        console.warn(
+          '[ngx-richtext] FormControl / ngModel binding is a premium feature. ' +
+            'Use [(value)] on the free tier, or unlock with a license (feature: reactiveForms).',
+        );
+        this.formControlWarned = true;
+      }
+      this.usingControlValueAccessor = false;
+      this.onChange = () => undefined;
+      this.onTouched = () => undefined;
+      this.cvaDisabled.set(false);
+      return;
+    }
+
+    this.usingControlValueAccessor = true;
+    if (this.pendingOnChange) {
+      this.onChange = this.pendingOnChange;
+      if (this.viewReady) {
+        // Sync after late unlock so the control isn't left on a stale value.
+        this.onChange(this.getHtml());
+      }
+    }
+    if (this.pendingOnTouched) {
+      this.onTouched = this.pendingOnTouched;
+    }
+    if (this.pendingDisabled !== null) {
+      this.cvaDisabled.set(this.pendingDisabled);
+    }
   }
 
   onInput(): void {
@@ -379,9 +451,15 @@ export class RteEditorComponent implements ControlValueAccessor, AfterViewInit, 
     const html = this.serializer.serialize(root);
     this.empty.set(isEditorEmpty(root));
     this.updateCounts();
-    this.value.set(html);
+    this.syncValueModel(html);
     this.onChange(html);
     this.contentChange.emit(html);
+  }
+
+  private syncValueModel(html: string): void {
+    if (this.value() !== html) {
+      this.value.set(html);
+    }
   }
 
   private updateCounts(): void {
