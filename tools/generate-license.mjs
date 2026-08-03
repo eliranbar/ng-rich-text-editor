@@ -3,10 +3,11 @@
  * Generate Ed25519 license keys for ngx-richtext.
  *
  * Usage:
- *   node tools/generate-license.mjs --licensee "Acme Inc" --expiry 2027-12-31
+ *   node tools/generate-license.mjs --licensee "Acme Inc" --domains "*.acme.com"
  *   node tools/generate-license.mjs --keypair   # print new key pair
  *
- * Keep the private key secret. Embed only the public key in the library.
+ * Licenses default to one year from today and are bound to the hostnames given
+ * in --domains. Keep the private key secret; embed only the public key.
  */
 import {
   generateKeyPairSync,
@@ -31,6 +32,13 @@ function parseArgs(argv) {
 
 function b64(buf) {
   return Buffer.from(buf).toString('base64');
+}
+
+/** ISO date one year from today — the default license term. */
+function oneYearFromNow() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 const args = parseArgs(process.argv);
@@ -65,14 +73,30 @@ if (existsSync(privPath)) {
 }
 
 const features = (
-  args.features ??
-  'textColor,backgroundColor,imageResize,tables,sourceView,wordCount,fullscreen,reactiveForms'
-).split(',');
+  args.features ?? 'imageResize,sourceView,wordCount,fullscreen,reactiveForms'
+)
+  .split(',')
+  .map((f) => f.trim())
+  .filter(Boolean);
+
+const domains = (args.domains ?? '')
+  .split(',')
+  .map((d) => d.trim().toLowerCase())
+  .filter(Boolean);
+
+if (domains.length === 0) {
+  console.error(
+    'Refusing to issue an unbound license. Pass --domains "acme.com,*.acme.com"\n' +
+      '(or --domains "*" to deliberately allow any host).',
+  );
+  process.exit(1);
+}
 
 const payloadObj = {
   plan: args.plan ?? 'premium',
   features,
-  expiry: args.expiry ?? '2099-12-31',
+  domains,
+  expiry: args.expiry ?? oneYearFromNow(),
   licensee: args.licensee ?? 'unknown',
 };
 

@@ -26,11 +26,27 @@ npm run publish:dry  # npm publish --dry-run of the built package
 ## License key tooling
 
 ```bash
+# rotate the signing key pair (embed the public half in src/lib/license/public-key.ts)
 node tools/generate-license.mjs --keypair
-RTE_LICENSE_PRIVATE_KEY=... node tools/generate-license.mjs --licensee "You" --expiry 2027-12-31
+
+# issue a customer key — bound to their hostnames, one year by default
+RTE_LICENSE_PRIVATE_KEY=... node tools/generate-license.mjs \
+  --licensee "Acme Inc" --domains "acme.com,*.acme.com"
 ```
 
-Never commit a production private key. `tools/license-private.key` is gitignored (a local demo key may exist for development only).
+`--domains` is mandatory: the generator refuses to issue an unbound key, because a
+key with no host restriction is worth stealing out of a shipped JS bundle. Local
+development hosts (`localhost`, `127.0.0.1`, `*.localhost`) always pass, so
+customers never need a separate key for `ng serve`.
+
+Never commit a production private key. `tools/license-private.key` is gitignored.
+
+## License
+
+**Not MIT.** ngx-richtext is source-available under the [ngx-richtext License
+Agreement](LICENSE): the free tier is free forever in any application including
+commercial ones, premium features require a purchased key, and redistributing the
+library itself — or patching out the feature gate — is not permitted.
 
 ## Docs
 

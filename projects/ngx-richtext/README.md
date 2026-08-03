@@ -175,18 +175,37 @@ import { enableImageResize } from 'ngx-richtext/image-resize';
 
 ### License keys
 
-Offline Ed25519-signed keys — no license server required.
+Offline Ed25519-signed keys — no license server required. Every key is bound to
+the hostnames it was issued for and carries an expiry date (one year by default):
 
-```bash
-# generate a key pair (keep private key secret)
-node tools/generate-license.mjs --keypair
-
-# issue a license
-RTE_LICENSE_PRIVATE_KEY=<private> node tools/generate-license.mjs \
-  --licensee "Acme Inc" --expiry 2027-12-31
+```jsonc
+{
+  "plan": "premium",
+  "features": ["imageResize", "sourceView", "wordCount", "fullscreen", "reactiveForms"],
+  "domains": ["acme.com", "*.acme.com"],
+  "expiry": "2027-08-03",
+  "licensee": "Acme Inc"
+}
 ```
 
-Pass the resulting `licenseKey` to `provideRichTextEditor`. Invalid / missing / expired keys gracefully fall back to the free tier.
+Pass the key to `provideRichTextEditor({ licenseKey })`. Verification happens once
+at startup and never blocks rendering — a missing, malformed, expired, or
+wrong-domain key logs a warning and falls back to the free tier.
+
+**Domain binding.** `*.acme.com` matches the apex and every subdomain;
+`notacme.com` does not. `localhost`, `127.0.0.1`, and `*.localhost` are always
+accepted so `ng serve`, CI, and unit tests work without a key of their own. Server
+rendering (no `location`) is likewise treated as a development host.
+
+**Expiry.** When a key expires the editor keeps working — only premium features
+switch off. Renew by dropping in a new key; no code change needed.
+
+Issuing keys (maintainers):
+
+```bash
+RTE_LICENSE_PRIVATE_KEY=<private> node tools/generate-license.mjs \
+  --licensee "Acme Inc" --domains "acme.com,*.acme.com"
+```
 
 ## Theming
 
@@ -239,4 +258,10 @@ npm run publish:dry
 
 ## License
 
-MIT — free to use. Premium capabilities are gated by a separately issued license key.
+Source-available under the [ngx-richtext License Agreement](LICENSE) — **not MIT**.
+
+- **Free tier** — free forever, in unlimited applications, including commercial ones. No key, no registration.
+- **Premium tier** — requires a purchased license key, bound to your domains and renewed annually.
+- **Source** — published to read, audit, debug, and contribute to. Redistributing the library itself, or bypassing the feature gate, is not permitted.
+
+[Get a license →](https://www.ebdev-design.com)

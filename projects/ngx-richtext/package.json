@@ -1,6 +1,6 @@
 {
   "name": "@ebdev/ngx-richtext",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Professional Angular rich text editor with free and premium feature tiers",
   "keywords": [
     "angular",
@@ -10,7 +10,7 @@
     "contenteditable",
     "ngx"
   ],
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://www.ebdev-design.com",
   "publishConfig": {
     "access": "public"

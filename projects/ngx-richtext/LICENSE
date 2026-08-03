@@ -1,21 +1,150 @@
-MIT License
+ngx-richtext License Agreement
+Version 1.0, effective 3 August 2026
 
-Copyright (c) 2026 ngx-richtext contributors
+Copyright (c) 2026 Eliran Bar. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software is source-available, not open source. Read this agreement before
+using, copying, or modifying it. By using the Software you accept these terms.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+--------------------------------------------------------------------------------
+1. DEFINITIONS
+--------------------------------------------------------------------------------
+
+"Software" means the ngx-richtext library, its source code, its published npm
+packages, and its documentation.
+
+"Licensor" means Eliran Bar.
+
+"You" means the individual or legal entity exercising rights under this
+agreement, including all entities under common control with you.
+
+"Free Features" means the functionality listed as free in the Software's
+documentation and enumerated as FREE_FEATURES in the source code.
+
+"Premium Features" means the functionality listed as premium in the Software's
+documentation and enumerated as PREMIUM_FEATURES in the source code.
+
+"License Key" means a cryptographically signed key issued by the Licensor that
+enables Premium Features on the hostnames and until the expiry date recorded in
+that key.
+
+"Application" means a software product You develop in which the Software is
+embedded as a component, and whose primary value is not the Software itself.
+
+--------------------------------------------------------------------------------
+2. FREE TIER
+--------------------------------------------------------------------------------
+
+The Licensor grants You a worldwide, royalty-free, non-exclusive, perpetual
+license to use the Free Features in an unlimited number of Applications,
+including Applications You sell or operate commercially, subject to the
+restrictions in Section 5.
+
+No payment, registration, or License Key is required for the Free Tier.
+
+--------------------------------------------------------------------------------
+3. PREMIUM TIER
+--------------------------------------------------------------------------------
+
+Premium Features require a valid License Key. Subject to Your payment of the
+applicable fees, the Licensor grants You a non-exclusive, non-transferable
+license to use the Premium Features in Applications served from the hostnames
+recorded in Your License Key, for the term ending on that key's expiry date.
+
+3.1  A License Key is confidential to You. You may embed it in Applications You
+     control, which necessarily exposes it to end users of those Applications;
+     that exposure is expected and permitted. You may not publish, sell, share,
+     or otherwise distribute a License Key for use by anyone else.
+
+3.2  On expiry, the Software reverts to the Free Tier. Applications continue to
+     function; only Premium Features become unavailable.
+
+3.3  The Licensor may revoke a License Key that has been distributed in breach
+     of Section 3.1, or obtained by fraud, in a subsequent release of the
+     Software.
+
+--------------------------------------------------------------------------------
+4. SOURCE ACCESS
+--------------------------------------------------------------------------------
+
+The Software's source code is published so that You may read it, audit it,
+debug against it, and propose contributions. Accordingly, You may:
+
+4.1  Read, copy, and compile the source code for the purpose of evaluating,
+     debugging, or building Applications permitted under Sections 2 and 3.
+
+4.2  Modify the source code for Your own internal use, and distribute those
+     modifications only as part of an Application permitted under Sections 2
+     and 3.
+
+4.3  Submit contributions to the Licensor. By submitting a contribution You
+     grant the Licensor a perpetual, irrevocable, worldwide, royalty-free
+     license to use, modify, and relicense it as part of the Software.
+
+--------------------------------------------------------------------------------
+5. RESTRICTIONS
+--------------------------------------------------------------------------------
+
+You may not:
+
+5.1  Circumvent, disable, remove, or interfere with the license verification or
+     feature gating in the Software, including by altering the embedded public
+     key, forging or self-signing a License Key, patching the feature gate, or
+     enabling Premium Features without a valid License Key. Nothing in
+     Section 4 permits this.
+
+5.2  Distribute, publish, sublicense, sell, rent, lease, or host the Software or
+     any derivative of it as a standalone library, component, SDK, template, or
+     development tool, whether or not for a fee. The Software may reach third
+     parties only embedded within an Application.
+
+5.3  Use the Software to build or operate a product that competes with the
+     Software as a rich text editor component or library.
+
+5.4  Remove or obscure any copyright, trademark, or license notice in the
+     Software.
+
+5.5  Use the Licensor's name or trademarks to endorse or promote Your products
+     without prior written permission.
+
+--------------------------------------------------------------------------------
+6. TERMINATION
+--------------------------------------------------------------------------------
+
+This agreement terminates automatically if You breach it and do not cure the
+breach within 30 days of becoming aware of it. On termination You must stop
+using the Software and remove it from Applications You distribute or operate.
+Sections 4.3, 7, 8, and 9 survive termination.
+
+--------------------------------------------------------------------------------
+7. NO WARRANTY
+--------------------------------------------------------------------------------
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+--------------------------------------------------------------------------------
+8. LIMITATION OF LIABILITY
+--------------------------------------------------------------------------------
+
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
+OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. THE LICENSOR'S TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED THE FEES YOU
+PAID FOR THE SOFTWARE IN THE TWELVE MONTHS PRECEDING THE CLAIM.
+
+--------------------------------------------------------------------------------
+9. GENERAL
+--------------------------------------------------------------------------------
+
+This agreement is the entire agreement between You and the Licensor regarding
+the Software. If any provision is held unenforceable, the remainder stays in
+effect. The Licensor may publish revised versions of this agreement for future
+releases; the version distributed with a release governs that release.
+
+Third-party dependencies of the Software are licensed by their respective
+owners under their own terms.
+
+For commercial licensing, volume terms, or questions:
+https://www.ebdev-design.com

@@ -8,12 +8,45 @@ export interface LicensePayload {
   features: RteFeatureId[];
   expiry: string;
   licensee: string;
+  /**
+   * Hostnames this key is valid on. `['*.acme.com']` matches the apex and every
+   * subdomain; `['*']` or an empty/absent list means unrestricted. Local
+   * development hosts always pass — see {@link isDevelopmentHost}.
+   */
+  domains?: string[];
 }
 
 export interface LicenseState {
   valid: boolean;
   payload: LicensePayload | null;
   reason?: string;
+}
+
+/** Hosts that bypass domain binding so `ng serve` and CI never need their own key. */
+const DEVELOPMENT_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '0.0.0.0', '']);
+
+function isDevelopmentHost(hostname: string): boolean {
+  return DEVELOPMENT_HOSTS.has(hostname) || hostname.endsWith('.localhost');
+}
+
+function matchesDomain(domains: readonly string[] | undefined, hostname: string): boolean {
+  if (!domains || domains.length === 0) {
+    return true;
+  }
+  return domains.some((raw) => {
+    const pattern = raw.trim().toLowerCase();
+    if (!pattern) {
+      return false;
+    }
+    if (pattern === '*') {
+      return true;
+    }
+    if (pattern.startsWith('*.')) {
+      const apex = pattern.slice(2);
+      return hostname === apex || hostname.endsWith('.' + apex);
+    }
+    return hostname === pattern;
+  });
 }
 
 @Injectable()
@@ -56,7 +89,19 @@ export class LicenseService {
       const payload = JSON.parse(new TextDecoder().decode(payloadBytes)) as LicensePayload;
       if (payload.expiry && new Date(payload.expiry).getTime() < Date.now()) {
         this.state = { valid: false, payload, reason: 'expired' };
-        console.warn('[ngx-richtext] License expired — running in free tier.');
+        console.warn(
+          `[ngx-richtext] License expired on ${payload.expiry} — running in free tier.`,
+        );
+        return this.state;
+      }
+
+      const hostname = this.currentHostname();
+      if (!isDevelopmentHost(hostname) && !matchesDomain(payload.domains, hostname)) {
+        this.state = { valid: false, payload, reason: 'domain-mismatch' };
+        console.warn(
+          `[ngx-richtext] License is not valid for "${hostname}" ` +
+            `(licensed: ${payload.domains?.join(', ')}) — running in free tier.`,
+        );
         return this.state;
       }
 
@@ -86,6 +131,12 @@ export class LicenseService {
       return PREMIUM_FEATURES;
     }
     return listed;
+  }
+
+  /** Empty when there is no DOM (SSR / unit tests), which counts as a dev host. */
+  private currentHostname(): string {
+    const host = globalThis.location?.hostname ?? '';
+    return host.toLowerCase().replace(/^\[|\]$/g, '');
   }
 
   private async importPublicKey(): Promise<CryptoKey> {

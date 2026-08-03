@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.0
+
+**Breaking: every previously issued license key is invalid.** The signing key pair
+was rotated because the old public key had signed a perpetual demo key published in
+this repository. Existing customers need a reissued key.
+
+- **Domain binding.** License keys now carry a `domains` list and are only valid on
+  those hostnames. `*.acme.com` matches the apex and all subdomains. A key lifted
+  out of someone else's JS bundle unlocks nothing elsewhere. `localhost`,
+  `127.0.0.1`, `*.localhost`, and server rendering always pass, so no separate key
+  is needed for `ng serve`, CI, or SSR.
+- **Real expiry dates.** `tools/generate-license.mjs` now defaults to a one-year
+  term instead of 2099, and refuses to issue a key without `--domains`. Expired
+  keys fall back to the free tier — the editor keeps working, premium switches off.
+- **License changed from MIT to the ngx-richtext License Agreement.** Source-
+  available, not open source: the free tier stays free forever in any application
+  including commercial ones, premium features require a purchased key, and
+  redistributing the library or bypassing the feature gate is not permitted.
+- The demo license is now bound to the demo's own hosts and expires 2027-08-03.
+
 ## 0.1.8
 
 - **One tag instead of three.** `<ngx-rte>` now renders its own toolbar and card
