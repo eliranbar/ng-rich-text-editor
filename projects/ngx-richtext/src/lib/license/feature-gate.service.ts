@@ -8,12 +8,15 @@ export class FeatureGateService {
   private readonly config = inject(RTE_CONFIG);
   private readonly license = inject(LicenseService);
   private readonly enabled = signal<ReadonlySet<RteFeatureId>>(new Set(FREE_FEATURES));
-  private ready = false;
+  /** Single-flight: every editor/toolbar on the page awaits the same init. */
+  private pending: Promise<void> | null = null;
 
-  async init(): Promise<void> {
-    if (this.ready) {
-      return;
-    }
+  init(): Promise<void> {
+    this.pending ??= this.runInit();
+    return this.pending;
+  }
+
+  private async runInit(): Promise<void> {
     await this.license.verify();
     const set = new Set<RteFeatureId>(FREE_FEATURES);
     for (const f of this.config.extraFeatures ?? []) {
@@ -23,7 +26,6 @@ export class FeatureGateService {
       set.add(f);
     }
     this.enabled.set(set);
-    this.ready = true;
   }
 
   isEnabled(feature: RteFeatureId): boolean {

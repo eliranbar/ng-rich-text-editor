@@ -8,6 +8,25 @@ import { RTE_FEATURES } from '../config/features';
 const DEMO_LICENSE =
   'eyJwIjoiZXlKd2JHRnVJam9pY0hKbGJXbDFiU0lzSW1abFlYUjFjbVZ6SWpwYkluUmxlSFJEYjJ4dmNpSXNJbUpoWTJ0bmNtOTFibVJEYjJ4dmNpSXNJbWx0WVdkbFVtVnphWHBsSWl3aWRHRmliR1Z6SWl3aWMyOTFjbU5sVm1sbGR5SXNJbmR2Y21SRGIzVnVkQ0lzSW1aMWJHeHpZM0psWlc0aUxDSnlaV0ZqZEdsMlpVWnZjbTF6SWwwc0ltVjRjR2x5ZVNJNklqSXdPVGt0TVRJdE16RWlMQ0pzYVdObGJuTmxaU0k2SW1SbGJXOUFaWGhoYlhCc1pTNWpiMjBpZlE9PSIsInMiOiJaRk02MnljTUpTcDBqRXYveTNMSmNrUnRjQzg2WnNDdFFlQzM0bTFCL0NnUXZyTDlVaTRSTVQ0NzRKenZuTkRoelA0TW5ESGlEOStPOFZ5Z0t4eXVEUT09In0=';
 
+/** Older jsdom/node builds ship WebCrypto without Ed25519; skip those tests there. */
+async function hasEd25519(): Promise<boolean> {
+  try {
+    await crypto.subtle.importKey(
+      'spki',
+      Uint8Array.from(
+        atob('MCowBQYDK2VwAyEAfVgGVILp81UrINSQMMH27fcixWvDbo8Vsbkhqq5poR8='),
+        (c) => c.charCodeAt(0),
+      ),
+      { name: 'Ed25519' },
+      false,
+      ['verify'],
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 describe('LicenseService', () => {
   it('falls back to free tier without a key', async () => {
     TestBed.configureTestingModule({
@@ -47,6 +66,47 @@ describe('LicenseService', () => {
     const license = TestBed.inject(LicenseService);
     const state = await license.verify();
     expect(state.valid).toBe(false);
+  });
+
+  it('gives concurrent callers the settled state, not the pre-verification one', async () => {
+    // Every editor and toolbar on the page verifies during ngAfterViewInit, so
+    // verify() must be single-flight — a second caller used to get back the
+    // initial `not-verified` state while the first was still awaiting crypto.
+    if (!(await hasEd25519())) {
+      return;
+    }
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        LicenseService,
+        { provide: RTE_CONFIG, useValue: { licenseKey: DEMO_LICENSE } },
+      ],
+    });
+    const license = TestBed.inject(LicenseService);
+    const [first, second] = await Promise.all([license.verify(), license.verify()]);
+    expect(first.valid).toBe(true);
+    expect(second.valid).toBe(true);
+  });
+
+  it('unlocks premium for every concurrent init(), not just the first', async () => {
+    // Regression: a losing racer saw the free-tier set and permanently gated
+    // its ControlValueAccessor, so [formControl] silently stopped emitting.
+    if (!(await hasEd25519())) {
+      return;
+    }
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        LicenseService,
+        FeatureGateService,
+        { provide: RTE_CONFIG, useValue: { licenseKey: DEMO_LICENSE } },
+      ],
+    });
+    const gate = TestBed.inject(FeatureGateService);
+    const seen = await Promise.all(
+      [0, 1, 2, 3].map(() => gate.init().then(() => gate.isEnabled(RTE_FEATURES.reactiveForms))),
+    );
+    expect(seen).toEqual([true, true, true, true]);
   });
 
   it('accepts a valid signed demo license when WebCrypto Ed25519 is available', async () => {

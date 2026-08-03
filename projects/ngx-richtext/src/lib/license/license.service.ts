@@ -20,14 +20,15 @@ export interface LicenseState {
 export class LicenseService {
   private readonly config = inject(RTE_CONFIG);
   private state: LicenseState = { valid: false, payload: null, reason: 'not-verified' };
-  private verified = false;
+  /** Single-flight: concurrent callers share one verification instead of racing. */
+  private pending: Promise<LicenseState> | null = null;
 
-  async verify(): Promise<LicenseState> {
-    if (this.verified) {
-      return this.state;
-    }
-    this.verified = true;
+  verify(): Promise<LicenseState> {
+    this.pending ??= this.runVerify();
+    return this.pending;
+  }
 
+  private async runVerify(): Promise<LicenseState> {
     const key = this.config.licenseKey?.trim();
     if (!key) {
       this.state = { valid: false, payload: null, reason: 'missing-key' };
