@@ -1,6 +1,6 @@
 {
   "name": "@ebdev/ngx-richtext",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Professional Angular rich text editor with free and premium feature tiers",
   "keywords": [
     "angular",
