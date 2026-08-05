@@ -50,7 +50,20 @@ if (args.keypair) {
   process.exit(0);
 }
 
-const privPath = args['private-key'] ?? resolve('tools/license-private.key');
+/**
+ * Which signing generation to use. Must match a `kid` in the client's keyring
+ * (`projects/ngx-richtext/src/lib/license/public-key.ts`) or the issued key will
+ * fail verification everywhere.
+ */
+const kid = args.kid ?? 'rte-2026-08';
+const product = args.product ?? '@ebdev/ngx-richtext';
+
+// Per-generation key file, falling back to the original single-key name.
+const defaultPrivPath = existsSync(resolve(`tools/license-private-${kid}.key`))
+  ? resolve(`tools/license-private-${kid}.key`)
+  : resolve('tools/license-private.key');
+
+const privPath = args['private-key'] ?? defaultPrivPath;
 let privateKey;
 if (existsSync(privPath)) {
   const raw = readFileSync(privPath, 'utf8').trim();
@@ -93,6 +106,8 @@ if (domains.length === 0) {
 }
 
 const payloadObj = {
+  product,
+  kid,
   plan: args.plan ?? 'premium',
   features,
   domains,
@@ -108,8 +123,7 @@ const license = b64(
 
 console.log(JSON.stringify({ payload: payloadObj, licenseKey: license }, null, 2));
 
-// Also print public key for convenience
+// Print the matching public key so it can be checked against the client keyring.
 const pub = createPublicKey(privateKey);
-console.log(
-  '\nPUBLIC_KEY_B64=' + b64(pub.export({ type: 'spki', format: 'der' })),
-);
+console.log('\nSigned with ' + privPath);
+console.log('PUBLIC_KEY_B64=' + b64(pub.export({ type: 'spki', format: 'der' })));

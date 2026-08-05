@@ -39,7 +39,13 @@ key with no host restriction is worth stealing out of a shipped JS bundle. Local
 development hosts (`localhost`, `127.0.0.1`, `*.localhost`) always pass, so
 customers never need a separate key for `ng serve`.
 
-Never commit a production private key. `tools/license-private.key` is gitignored.
+Keys are stamped with a `kid` naming the signing generation that produced them, and
+the client trusts an ordered **keyring** rather than a single key. The successor for
+the next rotation ships roughly a year before it signs anything, which is what makes
+rotation a server-side change instead of a coordinated customer upgrade. Full
+runbook: [tools/README.md](tools/README.md).
+
+Never commit a production private key. `tools/license-private*.key` is gitignored.
 
 ## License
 

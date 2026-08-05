@@ -43,8 +43,10 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# License private key (never commit production secrets)
-tools/license-private.key
+# License private keys (never commit production secrets).
+# Glob, not an exact name: one key per product and per rotation generation.
+tools/license-private*.key
+tools/*.pkcs8.b64
 /test-results
 /playwright-report
 /blob-report

@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.4.0
+
+**Fixes a bug that silently downgraded paying customers to the free tier.**
+
+- **Ed25519 fallback.** `crypto.subtle` only gained Ed25519 in Chrome 137, and it does not exist
+  at all outside a secure context. Until now the verifier caught that failure and reported
+  `parse-error`, so a customer on an older browser, a pinned enterprise build, an Android WebView,
+  or a plain-`http://` intranet lost the features they had paid for — with nothing in the console
+  to explain why. A pure-JS fallback now handles those environments. It is **loaded on demand**,
+  so the majority with native Ed25519 download nothing extra.
+- **The public key is now a keyring.** `RTE_LICENSE_KEYRING` holds an ordered list of trusted
+  keys, and payloads carry a `kid` naming the one that signed them. The **successor key for the
+  next rotation ships in this release**, roughly a year before it signs anything — so when
+  rotation happens it is a server-side change that requires no action from you. Previously a
+  rotation would have invalidated every key ever issued, simultaneously.
+- **Licenses are bound to a product.** Payloads carry `product`, and a key issued for another
+  E.B Dev & Design package is rejected here even though the signature is valid. Every product
+  also has its own signing keypair, which makes cross-product forgery impossible rather than
+  merely detected.
+- **Expiry no longer ends a day early.** A key stamped `2027-08-05` was read as expiring at
+  00:00 **UTC**, so anyone east of Greenwich lost a day they had paid for. A 24-hour grace window
+  means the stamped day is always a full day, in every timezone.
+- **Angular 22 supported** — added to the peer range alongside 18–21.
+- New failure reasons on `LicenseState`: `no-crypto` (the environment cannot verify anything) and
+  `product-mismatch`. `reason` is now the `LicenseFailureReason` union instead of `string`.
+- The demo key is no longer bound to `*.ebdev-design.com`. It ships in a public bundle, and a
+  wildcard made every present and future demo subdomain a valid host for it.
+
 ## 0.3.0
 
 **Breaking: every previously issued license key is invalid.** The signing key pair
