@@ -180,6 +180,8 @@ the hostnames it was issued for and carries an expiry date (one year by default)
 
 ```jsonc
 {
+  "product": "@ebdev/ngx-richtext",
+  "kid": "rte-2026-08",
   "plan": "premium",
   "features": ["imageResize", "sourceView", "wordCount", "fullscreen", "reactiveForms"],
   "domains": ["acme.com", "*.acme.com"],
@@ -198,7 +200,19 @@ accepted so `ng serve`, CI, and unit tests work without a key of their own. Serv
 rendering (no `location`) is likewise treated as a development host.
 
 **Expiry.** When a key expires the editor keeps working — only premium features
-switch off. Renew by dropping in a new key; no code change needed.
+switch off. Renew by dropping in a new key; no code change needed. The stamped
+date is honoured for the whole of that day in every timezone.
+
+**Works without WebCrypto Ed25519.** Verification prefers the browser's native
+implementation and falls back to a bundled pure-JS one where that is missing —
+older Chrome, enterprise-pinned builds, Android WebViews, and any page served over
+plain `http://`. The fallback is loaded on demand, so it costs nothing on browsers
+that do not need it.
+
+**Diagnosing a key.** `LicenseService.getState().reason` is one of `missing-key`,
+`parse-error`, `no-crypto`, `invalid-signature`, `product-mismatch`, `expired`, or
+`domain-mismatch`. Each is also logged once with an explanation. `no-crypto` means
+the environment could not verify anything — it is never a problem with the key.
 
 Issuing keys (maintainers):
 

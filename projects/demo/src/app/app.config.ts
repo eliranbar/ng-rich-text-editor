@@ -4,14 +4,18 @@ import { delay, of } from 'rxjs';
 import { provideRichTextEditor } from 'ngx-richtext';
 
 /**
- * Demo premium license. Bound to the demo hosts (localhost, 127.0.0.1,
- * eliranbar.github.io, *.ebdev-design.com) and expires 2027-08-03, so copying it
- * into another app unlocks nothing. Reissue with:
+ * Demo premium license. Bound to exactly the hosts the demo runs on
+ * (ngx-richtext.ebdev-design.com, localhost, 127.0.0.1) and expires 2027-08-05,
+ * so copying it into another app unlocks nothing.
+ *
+ * Deliberately *not* `*.ebdev-design.com`: this key ships in a public bundle, and
+ * a wildcard would make every current and future demo subdomain a valid host for
+ * it. Reissue with:
  *   npm run license -- --licensee "ngx-richtext demo" \
- *     --domains "localhost,127.0.0.1,eliranbar.github.io,*.ebdev-design.com"
+ *     --domains "ngx-richtext.ebdev-design.com,localhost,127.0.0.1"
  */
 const DEMO_LICENSE_KEY =
-  'eyJwIjoiZXlKd2JHRnVJam9pY0hKbGJXbDFiU0lzSW1abFlYUjFjbVZ6SWpwYkltbHRZV2RsVW1WemFYcGxJaXdpYzI5MWNtTmxWbWxsZHlJc0luZHZjbVJEYjNWdWRDSXNJbVoxYkd4elkzSmxaVzRpTENKeVpXRmpkR2wyWlVadmNtMXpJbDBzSW1SdmJXRnBibk1pT2xzaWJHOWpZV3hvYjNOMElpd2lNVEkzTGpBdU1DNHhJaXdpWld4cGNtRnVZbUZ5TG1kcGRHaDFZaTVwYnlJc0lpb3VaV0prWlhZdFpHVnphV2R1TG1OdmJTSmRMQ0psZUhCcGNua2lPaUl5TURJM0xUQTRMVEF6SWl3aWJHbGpaVzV6WldVaU9pSnVaM2d0Y21samFIUmxlSFFnWkdWdGJ5SjkiLCJzIjoic0tlbFJQVU1uR0QxUUZVOEg1NkZIanJRdm1aM2NRdk11L1h6VGVnOVppeVdqMSs3TDAyU3FibDFJMWlVL3VNTkw4TzQyVWIzdS9QRlF4NmxCNkhuQkE9PSJ9';
+  'eyJwIjoiZXlKd2NtOWtkV04wSWpvaVFHVmlaR1YyTDI1bmVDMXlhV05vZEdWNGRDSXNJbXRwWkNJNkluSjBaUzB5TURJMkxUQTRJaXdpY0d4aGJpSTZJbkJ5WlcxcGRXMGlMQ0ptWldGMGRYSmxjeUk2V3lKcGJXRm5aVkpsYzJsNlpTSXNJbk52ZFhKalpWWnBaWGNpTENKM2IzSmtRMjkxYm5RaUxDSm1kV3hzYzJOeVpXVnVJaXdpY21WaFkzUnBkbVZHYjNKdGN5SmRMQ0prYjIxaGFXNXpJanBiSW01bmVDMXlhV05vZEdWNGRDNWxZbVJsZGkxa1pYTnBaMjR1WTI5dElpd2liRzlqWVd4b2IzTjBJaXdpTVRJM0xqQXVNQzR4SWwwc0ltVjRjR2x5ZVNJNklqSXdNamN0TURndE1EVWlMQ0pzYVdObGJuTmxaU0k2SW01bmVDMXlhV05vZEdWNGRDQmtaVzF2SW4wPSIsInMiOiJEZUN6eUhQS1l0N1I3QWJqRVNzblY3WXoxVmpEVkNPaHhIU0cyK2J5cE95RlBqMmZGOURyZkFndXNhT2daaENWajdDRHR5RmVDc2kyd3BHQzVwSXlEdz09In0=';
 
 export const appConfig: ApplicationConfig = {
   providers: [
