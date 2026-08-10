@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RteEditorComponent } from 'ngx-richtext';
+import { FreeRteDemo } from './free-editor';
 
 export interface FeatureCard {
   title: string;
@@ -26,7 +27,7 @@ const DEMO_HTML = `<p>Welcome to <strong>ngx-richtext</strong> — a professiona
 
 @Component({
   selector: 'app-root',
-  imports: [RteEditorComponent, ReactiveFormsModule],
+  imports: [RteEditorComponent, FreeRteDemo, ReactiveFormsModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

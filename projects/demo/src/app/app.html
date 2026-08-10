@@ -47,7 +47,10 @@
   <section class="section" id="demo">
     <div class="section__head">
       <h2>See it in action</h2>
-      <p>Type, format, paste, drop images — everything runs in your browser right now.</p>
+      <p>
+        Two editors, same page — the first runs with no license, the second with a
+        premium one. Compare the toolbars.
+      </p>
     </div>
 
     <div class="demo-window" id="value-demo">
@@ -55,13 +58,18 @@
         <div class="demo-window__dots" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
-        <span class="demo-window__title">Live editor · [(value)]</span>
+        <span class="demo-window__title">Free tier · [(value)]</span>
+        <span class="badge badge--free">Free</span>
         <button type="button" class="btn btn--sm" (click)="dark.set(!dark())">
           {{ dark() ? 'Light' : 'Dark' }} mode
         </button>
       </div>
+      <p class="demo-window__note">
+        No license key. The toolbar stops at <code>clear</code> — no HTML source, no
+        fullscreen — and there is no word-count footer.
+      </p>
       <div class="demo-window__body" [class.demo-window__body--dark]="dark()">
-        <ngx-rte
+        <demo-free-rte
           [theme]="dark() ? 'dark' : 'light'"
           [(value)]="html"
           placeholder="Type freely…"
@@ -92,9 +100,14 @@
         <div class="demo-window__dots" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
-        <span class="demo-window__title">FormControl</span>
+        <span class="demo-window__title">Premium · FormControl</span>
         <span class="badge badge--premium">Premium</span>
       </div>
+      <p class="demo-window__note">
+        Demo license key. Adds <code>&lt;/&gt;</code> HTML source and ⛶ fullscreen to the
+        toolbar, a live word-count footer, and unlocks <code>[formControl]</code> with
+        validation.
+      </p>
       <div class="demo-window__body" [class.demo-window__body--dark]="dark()">
         <ngx-rte
           [theme]="dark() ? 'dark' : 'light'"
