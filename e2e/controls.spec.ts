@@ -5,14 +5,25 @@ const DEMO = '#value-demo';
 const EDITOR = `${DEMO} .ngx-rte__content`;
 const OUTPUT = `${DEMO} .demo__preview pre`;
 
+// The value-model demo runs unlicensed, so premium controls (source view,
+// fullscreen) only exist on the licensed FormControl demo.
+const PREMIUM_DEMO = '#forms-demo';
+const PREMIUM_EDITOR = `${PREMIUM_DEMO} .ngx-rte__content`;
+const PREMIUM_OUTPUT = `${PREMIUM_DEMO} .demo__preview pre`;
+
 /** Root of the editor under test, so controls never match a sibling editor. */
 function demo(page: Page): Locator {
   return page.locator(DEMO);
 }
 
+/** Root of the licensed editor, the only one showing premium controls. */
+function premiumDemo(page: Page): Locator {
+  return page.locator(PREMIUM_DEMO);
+}
+
 /** Clear the editor and type fresh text, leaving the caret in the editor. */
-async function typeFresh(page: Page, text: string): Promise<void> {
-  await page.locator(EDITOR).click();
+async function typeFresh(page: Page, text: string, editor = EDITOR): Promise<void> {
+  await page.locator(editor).click();
   await page.keyboard.press('ControlOrMeta+A');
   await page.keyboard.press('Backspace');
   await page.keyboard.type(text);
@@ -64,6 +75,10 @@ async function selectTextRange(page: Page, start: number, end = start): Promise<
 
 function html(page: Page) {
   return page.locator(OUTPUT);
+}
+
+function premiumHtml(page: Page) {
+  return page.locator(PREMIUM_OUTPUT);
 }
 
 /** Rendered writing direction of each top-level block in the editor. */
@@ -564,26 +579,34 @@ test.describe('table', () => {
 
 test.describe('source view', () => {
   test('shows HTML source and applies edits back', async ({ page }) => {
-    await typeFresh(page, 'source test');
-    await demo(page).getByRole('button', { name: 'HTML source' }).click();
-    const source = demo(page).locator('.ngx-rte__source');
+    await typeFresh(page, 'source test', PREMIUM_EDITOR);
+    await premiumDemo(page).getByRole('button', { name: 'HTML source' }).click();
+    const source = premiumDemo(page).locator('.ngx-rte__source');
     await expect(source).toBeVisible();
     await expect(source).toHaveValue(/source test/);
 
     await source.fill('<p><strong>edited in source</strong></p>');
-    await demo(page).getByRole('button', { name: 'HTML source' }).click();
-    await expect(page.locator(EDITOR)).toBeVisible();
-    await expect(html(page)).toContainText('<strong>edited in source</strong>');
+    await premiumDemo(page).getByRole('button', { name: 'HTML source' }).click();
+    await expect(page.locator(PREMIUM_EDITOR)).toBeVisible();
+    await expect(premiumHtml(page)).toContainText('<strong>edited in source</strong>');
+  });
+
+  test('stays hidden on an unlicensed editor', async ({ page }) => {
+    await expect(demo(page).getByRole('button', { name: 'HTML source' })).toHaveCount(0);
   });
 });
 
 test.describe('fullscreen', () => {
   test('toggles fullscreen class', async ({ page }) => {
-    const editorHost = demo(page).locator('ngx-rte');
-    await demo(page).getByRole('button', { name: 'Fullscreen' }).click();
+    const editorHost = premiumDemo(page).locator('ngx-rte');
+    await premiumDemo(page).getByRole('button', { name: 'Fullscreen' }).click();
     await expect(editorHost).toHaveClass(/ngx-rte--fullscreen/);
-    await demo(page).getByRole('button', { name: 'Fullscreen' }).click();
+    await premiumDemo(page).getByRole('button', { name: 'Fullscreen' }).click();
     await expect(editorHost).not.toHaveClass(/ngx-rte--fullscreen/);
+  });
+
+  test('stays hidden on an unlicensed editor', async ({ page }) => {
+    await expect(demo(page).getByRole('button', { name: 'Fullscreen' })).toHaveCount(0);
   });
 });
 
