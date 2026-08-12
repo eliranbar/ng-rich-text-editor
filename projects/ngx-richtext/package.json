@@ -11,7 +11,7 @@
     "ngx"
   ],
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://www.ebdev-design.com",
+  "homepage": "https://www.ebdev-design.com/products/ngx-richtext",
   "publishConfig": {
     "access": "public"
   },

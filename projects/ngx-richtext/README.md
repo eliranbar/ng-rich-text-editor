@@ -2,7 +2,7 @@
 
 Professional Angular rich text editor — one tag, toolbar included, HTML value format, host-delegated image uploads, and free/premium feature tiers unlocked by an offline signed license key.
 
-**[Live demo → https://www.ebdev-design.com](https://www.ebdev-design.com)**
+**[Live demo → https://ngx-richtext.ebdev-design.com](https://ngx-richtext.ebdev-design.com)**
 
 ## Install
 
@@ -278,4 +278,4 @@ Source-available under the [ngx-richtext License Agreement](LICENSE) — **not M
 - **Premium tier** — requires a purchased license key, bound to your domains and renewed annually.
 - **Source** — published to read, audit, debug, and contribute to. Redistributing the library itself, or bypassing the feature gate, is not permitted.
 
-[Get a license →](https://www.ebdev-design.com)
+[Get a license →](https://www.ebdev-design.com/products/ngx-richtext)

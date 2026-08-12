@@ -2,14 +2,14 @@
 
 Angular workspace for the **`ngx-richtext`** npm package — a professional rich text editor with free and premium feature tiers.
 
-**[Live demo → https://www.ebdev-design.com](https://www.ebdev-design.com)**
+**[Live demo → https://ngx-richtext.ebdev-design.com](https://ngx-richtext.ebdev-design.com)**
 
 ## Projects
 
 | Project | Path | Description |
 | --- | --- | --- |
 | `ngx-richtext` | `projects/ngx-richtext` | Publishable Angular library |
-| `demo` | `projects/demo` | Showcase app (forms, image upload, dark mode, HTML preview) — deployed at [ebdev-design.com](https://www.ebdev-design.com) |
+| `demo` | `projects/demo` | Showcase app (forms, image upload, dark mode, HTML preview) — deployed at [ngx-richtext.ebdev-design.com](https://ngx-richtext.ebdev-design.com) |
 
 ## Scripts
 
