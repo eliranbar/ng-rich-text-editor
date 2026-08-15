@@ -32,6 +32,15 @@ const DEMO_HTML = `<p>Welcome to <strong>ngx-richtext</strong> — a professiona
   styleUrl: './app.scss',
 })
 export class App {
+  /** Mobile nav. Collapsed into a menu below 720px, same as the marketing site. */
+  readonly menuOpen = signal(false);
+
+  /** Jump to a section and close the menu behind you, so the target is visible. */
+  go(id: string): void {
+    this.menuOpen.set(false);
+    this.scrollTo(id);
+  }
+
   readonly dark = signal(false);
   readonly showHtml = signal(false);
   readonly showFormHtml = signal(false);

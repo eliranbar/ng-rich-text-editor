@@ -5,10 +5,28 @@
       <img src="rich_text_logo.jpg" alt="ngx-richtext" width="36" height="36" />
       <span>ngx-richtext</span>
     </a>
-    <div class="nav__links">
-      <button type="button" class="nav__link" (click)="scrollTo('demo')">Demo</button>
-      <button type="button" class="nav__link" (click)="scrollTo('quickstart')">Quick start</button>
-      <button type="button" class="nav__link" (click)="scrollTo('features')">Features</button>
+    <button
+      class="nav__toggle"
+      type="button"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="demo-nav"
+      (click)="menuOpen.set(!menuOpen())"
+    >
+      <span class="visually-hidden">{{ menuOpen() ? 'Close' : 'Open' }} navigation</span>
+      <span aria-hidden="true">{{ menuOpen() ? '✕' : '☰' }}</span>
+    </button>
+    <div id="demo-nav" class="nav__links" [class.nav__links--open]="menuOpen()">
+      <button type="button" class="nav__link" (click)="go('demo')">Demo</button>
+      <button type="button" class="nav__link" (click)="go('quickstart')">Quick start</button>
+      <button type="button" class="nav__link" (click)="go('features')">Features</button>
+      <a
+        class="nav__home"
+        href="https://www.ebdev-design.com"
+        rel="noopener"
+        (click)="menuOpen.set(false)"
+      >
+        ← E.B Dev &amp; Design
+      </a>
     </div>
   </nav>
 
